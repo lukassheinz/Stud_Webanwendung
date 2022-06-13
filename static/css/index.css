@@ -1,0 +1,55 @@
+.wizard .content {
+    width: 100%;
+}
+
+button.chooseButton {
+    padding: 3rem 4rem;
+    border: 1px solid transparent;
+    background: white;
+    border-radius: .25rem;
+    margin: 1rem;
+    transition: .2s;
+}
+
+.chosen {
+    background: #00e!important;
+    color: white;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.accordion {
+    list-style: none!important;
+    padding: 0;
+}
+
+.accordion .inner {
+    padding-left: 1em;
+    overflow: hidden;
+    display: none;
+}
+
+.accordion li {
+    margin: 0.5em 0;
+}
+
+.accordion li a.toggle {
+    width: 100%;
+    display: block;
+    background: rgba(0, 0, 0, 0.78);
+    color: #fefefe;
+    padding: 0.75em;
+    border-radius: 0.15em;
+    transition: background 0.3s ease;
+}
+
+.accordion li a.toggle:hover {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.body.current {
+    overflow-y: scroll;
+}

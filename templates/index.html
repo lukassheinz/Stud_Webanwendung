@@ -1,132 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "bootstrap/base.html" %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% block title %}
+Demo App
+{% endblock %}
 
-     <link rel="stylesheet" href='/static/css/jquery.steps.css' />
-     <link rel="stylesheet" href='/static/css/bootstrap.min.css' />
-     <link rel="stylesheet" href='/static/css/index.css' />
-     <link rel="stylesheet" href='/static/css/drag.css' />
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('.static', filename='starter-template.css')}}">
+{% endblock %}
 
-
-
-    <script rel="stylesheet" href='/static/js/jquery.js'></script>
-    <script rel="stylesheet" href='/static/js/jquery.steps.min.js'></script>
-    <script rel="stylesheet" href='/static/js/drag'></script>
-
-
-
-    <title>Studienplaner</title>
-</head>
-
-<body>
-
-h1 Drag and Drop HTML5
-
-
-
-    <div id="example-basic" class="mt-2">
-        <h3>Wähle dein Startsemester</h3>
-        <section>
-            <div class="d-flex justify-content-center align-items-center w-100">
-                <button class="chooseButton" onclick="setSemester(1)" id="semester_1">
-            WiSe
+{% block content %}
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
           </button>
-                <button class="chooseButton" onclick="setSemester(2)" id="semester_2">
-            SoSe
-          </button>
-            </div>
-        </section>
-        <h3>Wähle zwei Vertiefungen</h3>
-        <section>
-            <div class="d-flex justify-content-center align-items-center w-100">
-                <button class="chooseButton" onclick="addVertiefung(1)" id="vertiefung_1">
-            EC
-          </button>
-                <button class="chooseButton" onclick="addVertiefung(2)" id="vertiefung_2">
-            VC
-          </button>
-                <button class="chooseButton" onclick="addVertiefung(3)" id="vertiefung_3">
-            CISS
-          </button>
-                <button class="chooseButton" onclick="addVertiefung(4)" id="vertiefung_4">
-            MI
-          </button>
-            </div>
-        </section>
-        <h3>Wähle deine Anzahl an Semestern Startsemester</h3>
-        <section style="overflow-y: hidden">
-            <div class="d-flex justify-content-center align-items-center w-100">
-                <button class="chooseButton" id="semester_anzahl_1" onclick="setSemesterAnzahl(1)">
-            1 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_2" onclick="setSemesterAnzahl(2)">
-            2 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_3" onclick="setSemesterAnzahl(3)">
-            3 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_4" onclick="setSemesterAnzahl(4)">
-            4 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_5" onclick="setSemesterAnzahl(5)">
-            5 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_6" onclick="setSemesterAnzahl(6)">
-            6 Semester
-          </button>
-            </div>
+        <!--  <a class="navbar-brand" href="#">Project name</a>  -->
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
 
-            <div class="d-flex justify-content-center align-items-center w-100">
-                <button class="chooseButton" id="semester_anzahl_7" onclick="setSemesterAnzahl(7)">
-            7 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_8" onclick="setSemesterAnzahl(8)">
-            8 Semester
-          </button>
-            </div>
-        </section>
-        <h3>Erstelle deinen Plan</h3>
-        <section>
-            <ul class="accordion" id="accordion" style="list-style: none !important">
-                <li>
-                    <a class="toggle" href="#" id="faecher_1">1. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
+    <div class="container">
 
-                <li>
-                    <a class="toggle" href="#" id="faecher_2">2. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
+      <div class="starter-template">
+        <h1>Studienverlaufsplan Uni Siegen</h1>
+      <!--  <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p> -->
+      </div>
 
-                <li>
-                    <a class="toggle" href="#" id="faecher_3">3. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-
-                <li>
-                    <a class="toggle" href="#" id="faecher_4">4. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-
-                <li>
-                    <a class="toggle" href="#" id="faecher_5">5. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-
-                <li>
-                    <a class="toggle" href="#" id="faecher_6">6. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-            </ul>
-        </section>
-    </div>
-</body>
-
-<script type="text/javascript" href='/static/js/index.js'></script>></script>
-
-
-</html>
+    </div><!-- /.container -->
+{% endblock %}

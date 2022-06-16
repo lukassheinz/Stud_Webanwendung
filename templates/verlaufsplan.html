@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href='/static/css/jquery.steps.css' />
+    <link rel="stylesheet" href='/static/css/bootstrap.min.css' />
+    <link rel="stylesheet" href='/static/css/index.css' />
+    <!-- <link rel="stylesheet" href='/static/css/drag.css' /> -->
+
+    <script rel="stylesheet" src='/static/js/jquery.min.js'></script>
+    <script rel="stylesheet" src='/static/js/jquery.steps.min.js'></script>
+    <!--<script rel="stylesheet" src='/static/js/drag'></script>-->
+
+
+
+    <title>Studienplaner</title>
+</head>
+
+<body>
+
+    <h1>
+        Drag and Drop HTML5
+    </h1>
+
+
+
+    <div id="example-basic" class="mt-2">
+        <h3>Wähle dein Startsemester</h3>
+        <section>
+            <div class="d-flex justify-content-center align-items-center w-100">
+                <button class="chooseButton" onclick="setSemester(1)" id="semester_1">
+            WiSe
+          </button>
+                <button class="chooseButton" onclick="setSemester(2)" id="semester_2">
+            SoSe
+          </button>
+            </div>
+        </section>
+        <h3>Wähle zwei Vertiefungen</h3>
+        <section>
+            <div class="d-flex justify-content-center align-items-center w-100">
+                <button class="chooseButton" onclick="addVertiefung(1)" id="vertiefung_1">
+            EC
+          </button>
+                <button class="chooseButton" onclick="addVertiefung(2)" id="vertiefung_2">
+            VC
+          </button>
+                <button class="chooseButton" onclick="addVertiefung(3)" id="vertiefung_3">
+            CISS
+          </button>
+                <button class="chooseButton" onclick="addVertiefung(4)" id="vertiefung_4">
+            MI
+          </button>
+            </div>
+        </section>
+        <h3>Wähle deine Anzahl an Semestern Startsemester</h3>
+        <section style="overflow-y: hidden">
+            <div class="d-flex justify-content-center align-items-center w-100">
+                <button class="chooseButton" id="semester_anzahl_1" onclick="setSemesterAnzahl(1)">
+            1 Semester
+          </button>
+                <button class="chooseButton" id="semester_anzahl_2" onclick="setSemesterAnzahl(2)">
+            2 Semester
+          </button>
+                <button class="chooseButton" id="semester_anzahl_3" onclick="setSemesterAnzahl(3)">
+            3 Semester
+          </button>
+                <button class="chooseButton" id="semester_anzahl_4" onclick="setSemesterAnzahl(4)">
+            4 Semester
+          </button>
+                <button class="chooseButton" id="semester_anzahl_5" onclick="setSemesterAnzahl(5)">
+            5 Semester
+          </button>
+                <button class="chooseButton" id="semester_anzahl_6" onclick="setSemesterAnzahl(6)">
+            6 Semester
+          </button>
+            </div>
+
+            <div class="d-flex justify-content-center align-items-center w-100">
+                <button class="chooseButton" id="semester_anzahl_7" onclick="setSemesterAnzahl(7)">
+            7 Semester
+          </button>
+                <button class="chooseButton" id="semester_anzahl_8" onclick="setSemesterAnzahl(8)">
+            8 Semester
+          </button>
+            </div>
+        </section>
+        <h3>Erstelle deinen Plan</h3>
+        <section>
+            <ul class="accordion" id="accordion" style="list-style: none !important">
+                <li>
+                    <a class="toggle" href="#" id="faecher_1">1. Semester</a>
+                    <div class="inner">Fächer initialisieren</div>
+                </li>
+
+                <li>
+                    <a class="toggle" href="#" id="faecher_2">2. Semester</a>
+                    <div class="inner">Fächer initialisieren</div>
+                </li>
+
+                <li>
+                    <a class="toggle" href="#" id="faecher_3">3. Semester</a>
+                    <div class="inner">Fächer initialisieren</div>
+                </li>
+
+                <li>
+                    <a class="toggle" href="#" id="faecher_4">4. Semester</a>
+                    <div class="inner">Fächer initialisieren</div>
+                </li>
+
+                <li>
+                    <a class="toggle" href="#" id="faecher_5">5. Semester</a>
+                    <div class="inner">Fächer initialisieren</div>
+                </li>
+
+                <li>
+                    <a class="toggle" href="#" id="faecher_6">6. Semester</a>
+                    <div class="inner">Fächer initialisieren</div>
+                </li>
+            </ul>
+        </section>
+    </div>
+</body>
+
+<script type="text/javascript" src='/static/js/index.js'></script>
+
+</html>

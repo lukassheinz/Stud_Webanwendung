@@ -3,20 +3,37 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Email, Length
-#from flask_sqlalchemy import SQLAlchemy
+from database import Database
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, login_manager
 from flask_mysqldb import MySQL
-#from nib import *
 
 app = Flask(__name__)
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Propra2022xyz!'
-app.config['MYSQL_DB'] = 'webbenutzer'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/propra2022'
+db = SQLAlchemy(app)
 
-mysql = MySQL(app)
+dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
+
+
 app.config['SECRET_KEY'] = 'xxxxxxxxxxxxxxxxx!'
 bootstrap = Bootstrap(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+class benutzer(UserMixin, db.Model):
+    matrikelnummer = db.Column(db.Integer, primary_key=True)
+    vorname = db.Column(db.String(50))
+    nachname = db.Column(db.String(50))
+    email = db.Column(db.String(50), unique=True)
+    passwort = db.Column(db.String(80))
+
+@login_manager.user_loader
+def load_user(matrikelnummer):
+    return benutzer.query.get(int(matrikelnummer))
 
 class LoginForm(FlaskForm):
     username = StringField('Matrikelnummer', validators=[InputRequired(), Length(min=4, max=15)])
@@ -30,62 +47,51 @@ class RegisterForm(FlaskForm):
     vorname = StringField('Vorname', validators=[InputRequired(), Length(max=80)])
     nachname = StringField('Nachname', validators=[InputRequired(), Length(max=80)])
 
-listid = []
-listpw = []
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/verlaufsplan')
-def verlaufsplan():
-    return render_template('verlaufsplan.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-
     if form.validate_on_submit():
+        user = benutzer.query.filter_by(matrikelnummer=form.username.data).first()
+        if user:
+            if check_password_hash(user.passwort, form.password.data):
+                #login_user(user, remember=form.remember.data)
+                return redirect(url_for('index2'))
 
-        matrikelnummer = form.username.data
-        password = form.password.data
+        return '<h1>Falsche Zugangsdaten</h1>'
 
-        cursor = mysql.connection.cursor()
-        cursor.execute("SELECT * from benutzer_daten ")
-        myresult = cursor.fetchall()
-        for x in myresult:
-            listid.append(str(x[0]))
-            listpw.append(str(x[4]))
-
-        if matrikelnummer in listid and password in listpw:
-            return redirect(url_for('verlaufsplan'))
-        else:
-            return '<h1>Falsche Daten!!!</h1>'
     return render_template('login.html', form=form)
 
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = RegisterForm()
-
     if form.validate_on_submit():
+        hashed_password = generate_password_hash(form.password.data, method='sha256')
+        new_user = benutzer(matrikelnummer=form.username.data, vorname=form.vorname.data, nachname=form.nachname.data, email=form.email.data, passwort=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
 
-        #hashed_password = generate_password_hash(form.password.data, method='sha256')
-        matrikelnummer = form.username.data
-        vorname = form.vorname.data
-        nachname = form.nachname.data
-        email = form.email.data
-        password = form.password.data
-        #password = hashed_password
-        cursor = mysql.connection.cursor()
-        cursor.execute(''' INSERT INTO benutzer_daten VALUES(%s,%s,%s,%s,%s)''',(matrikelnummer, vorname, nachname, email, password))
-        mysql.connection.commit()
-        cursor.close()
-        #return '<h1>Neuer Benutzer wurde estellt!</h1>'
         return redirect(url_for('login'))
-
 
     return render_template('signup.html', form=form)
 
-if __name__ == "__main__":
-    app.run()
+@app.route('/verlaufsplan')
+def verlaufsplan():
+    ergebnis = dbase.get_vertiefungen()         #Beispiel - nach dbase. alle Einträge der database.py einsetzbar
+    anzahl = 0
+    for erg in ergebnis:
+        anzahl = anzahl + 1
+        print(erg)
+
+    return render_template('index2.html', len=anzahl, ergebnis=ergebnis)  # , name=current_user.username
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+

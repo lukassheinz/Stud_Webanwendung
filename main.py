@@ -11,7 +11,7 @@ from flask_mysqldb import MySQL
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/propra2022'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:dbpasswort@localhost/dbName' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])

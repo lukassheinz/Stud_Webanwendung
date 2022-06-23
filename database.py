@@ -9,6 +9,12 @@ class Database:
     def get_vertiefungen(self):
         return self.engine.execute('select * from vertiefung').fetchall()
 
+    def get_single_module(self, modul_ID):
+        sql_query = "select * from modul where ID = %s"
+        parameter = (str(modul_ID))
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+
     def get_module_empfohlen(self, start_semester, current_semester):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
@@ -171,7 +177,7 @@ class Database:
             VALUES(%s,%s,%s,'belegt')
             """
         parameter = (benutzer_id, modul_id, semester)
-        return self.engine.execute(sql_query, parameter).fetchall()
+        return self.engine.execute(sql_query, parameter)
 
     # Änderung des Status auf 'abgeschlossen' für ein Modul eines Benutzers
     def update_benutzer_modul(self, benutzer_id, modul_id, semester):

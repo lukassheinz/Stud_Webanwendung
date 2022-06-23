@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href='/static/css/jquery.steps.css' />
+    <link rel="stylesheet" href='/static/css/bootstrap.min.css' />
+    <link rel="stylesheet" href='/static/css/index.css' />
+    <!-- <link rel="stylesheet" href='/static/css/drag.css' /> -->
+
+    <script rel="stylesheet" src='/static/js/jquery.min.js'></script>
+    <script rel="stylesheet" src='/static/js/jquery.steps.min.js'></script>
+
+    <script src ="/static/js/modulauswahl.js"></script>
+    <!--<script rel="stylesheet" src='/static/js/drag'></script>-->
+
+
+
+    <title>Modulauswahl</title>
+</head>
+
+<body>
+
+<ul>
+    empfohlene Pflichtmodule
+    {% for item in module1 %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    nicht empfohlene Pflichtmodule
+    {% for item in pflichtkurse_nicht_empfohlen %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    empfohlene Pflichtmodule aus der gewählten Vertiefung
+    {% for item in pflichtkurse_vertiefung_empfohlen %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    nicht empfohlene Pflichtkurse aus der gewählten Vertiefung
+    {% for item in pflichtkurse_vertiefung_nicht_empfohlen %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    empfohlenes Grundlagenpraktikum
+    {% for item in grundlagenpraktikum %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    nicht empfohlenes Grundlagenpraktikum
+    {% for item in grundlagenpraktikum_nicht_empfohlen %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    empfohlenes zweites Grundlagenmodul
+    {% for item in zweites_Grundlagenmodul %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    nicht empfohlenes zweites Grundlagenmodul
+    {% for item in zweites_Grundlagenmodul_nicht_empfohlen %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    empfohlene Wahlpflichtkurse
+    {% for item in empfohlene_wahlpflichtkurse %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    nicht empfohlene Wahlpflichtkurse
+    {% for item in nichtempfohlene_wahlpflichtkurse %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    empfohlene Wahlpflichkturse aus anderen Vertiefungen
+    {% for item in andere_empfohlene_wahlpflichtkurse %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+<ul>
+    nicht empfohlene Wahlpfichtkurse aus anderen Vertiefungen
+    {% for item in andere_nichtempfohlene_wahlpflichtkurse %}
+        <li class = li value = {{item[0]}}>{{item}}</li>
+    {% endfor %}
+</ul>
+
+<ul class="semester-list">
+
+</ul>
+
+<button class="weiterbutton" value="weiter">Weiter</button>
+
+
+</body>

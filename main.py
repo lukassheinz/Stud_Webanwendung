@@ -11,7 +11,7 @@ from flask_mysqldb import MySQL
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/propra2022' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -30,10 +30,10 @@ class benutzer(UserMixin, db.Model):
     nachname = db.Column(db.String(50))
     email = db.Column(db.String(50), unique=True)
     passwort = db.Column(db.String(80))
-    erste_Vertiefung = db.Column(db.String(50))
+    wahlvertiefung_ID = db.Column(db.Integer)
     immatrikulationssemester = db.Column(db.String(50))
     immatrikulationsjahr = db.Column(db.String(4))
-    zweite_Vertiefung = db.Column(db.String(50))
+    wahlvertiefung2_ID = db.Column(db.Integer)
 
 @login_manager.user_loader
 def load_user(matrikelnummer):
@@ -45,6 +45,11 @@ class LoginForm(FlaskForm):
     remember = BooleanField('remember me')
 
 class RegisterForm(FlaskForm):
+    choices = []
+    vertiefungen = dbase.get_vertiefungen()
+    for vertiefung in vertiefungen:
+        choices = choices + [(vertiefung[0], vertiefung[1])]
+
     email = StringField('email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=50)])
     username = StringField('Matrikelnummer', validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField('Passwort', validators=[InputRequired(), Length(min=8, max=80)])
@@ -52,8 +57,8 @@ class RegisterForm(FlaskForm):
     nachname = StringField('Nachname', validators=[InputRequired(), Length(max=80)])
     immatrikulationssemester = SelectField('Immatrikulationssemester', choices=('Wintersemester', 'Sommersemester'))
     immatrikulationsjahr = StringField('Immatrikulationsjahr', validators=[InputRequired(), Length(min=4, max=4)])
-    erste_Vertiefung = SelectField('Vertiefung 1', choices=('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
-    zweite_Vertiefung = SelectField('Vertiefung 2', choices=('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
+    erste_Vertiefung = SelectField('Vertiefung 1', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
+    zweite_Vertiefung = SelectField('Vertiefung 2', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
 
 @app.route('/')
 def index():
@@ -80,7 +85,7 @@ def signup():
     form = RegisterForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='sha256')
-        new_user = benutzer(matrikelnummer=form.username.data, vorname=form.vorname.data, nachname=form.nachname.data, email=form.email.data, passwort=hashed_password)
+        new_user = benutzer(matrikelnummer=form.username.data, vorname=form.vorname.data, nachname=form.nachname.data, email=form.email.data, passwort=hashed_password, wahlvertiefung_ID=form.erste_Vertiefung.data, wahlvertiefung2_ID=form.zweite_Vertiefung.data, immatrikulationssemester=form.immatrikulationssemester.data, immatrikulationsjahr=form.immatrikulationsjahr.data)
         db.session.add(new_user)
         db.session.commit()
 

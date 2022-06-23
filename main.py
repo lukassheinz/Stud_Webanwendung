@@ -156,7 +156,7 @@ class LoginForm(FlaskForm):
     remember = BooleanField('remember me')
 
 class RegisterForm(FlaskForm):
-    choices = []
+    choices = [(0, "-- Bitte Vertiefung wählen --")]
     vertiefungen = dbase.get_vertiefungen()
     for vertiefung in vertiefungen:
         choices = choices + [(vertiefung[0], vertiefung[1])]

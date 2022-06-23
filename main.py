@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField
+from wtforms import StringField, PasswordField, BooleanField, SelectField
 from wtforms.validators import InputRequired, Email, Length
 from database import Database
 from flask_sqlalchemy import SQLAlchemy
@@ -11,7 +11,7 @@ from flask_mysqldb import MySQL
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:dbpasswort@localhost/dbName' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -30,6 +30,10 @@ class benutzer(UserMixin, db.Model):
     nachname = db.Column(db.String(50))
     email = db.Column(db.String(50), unique=True)
     passwort = db.Column(db.String(80))
+    erste_Vertiefung = db.Column(db.String(50))
+    immatrikulationssemester = db.Column(db.String(50))
+    immatrikulationsjahr = db.Column(db.String(4))
+    zweite_Vertiefung = db.Column(db.String(50))
 
 @login_manager.user_loader
 def load_user(matrikelnummer):
@@ -46,7 +50,10 @@ class RegisterForm(FlaskForm):
     password = PasswordField('Passwort', validators=[InputRequired(), Length(min=8, max=80)])
     vorname = StringField('Vorname', validators=[InputRequired(), Length(max=80)])
     nachname = StringField('Nachname', validators=[InputRequired(), Length(max=80)])
-
+    immatrikulationssemester = SelectField('Immatrikulationssemester', choices=('Wintersemester', 'Sommersemester'))
+    immatrikulationsjahr = StringField('Immatrikulationsjahr', validators=[InputRequired(), Length(min=4, max=4)])
+    erste_Vertiefung = SelectField('Vertiefung 1', choices=('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
+    zweite_Vertiefung = SelectField('Vertiefung 2', choices=('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
 
 @app.route('/')
 def index():
@@ -61,7 +68,7 @@ def login():
         if user:
             if check_password_hash(user.passwort, form.password.data):
                 #login_user(user, remember=form.remember.data)
-                return redirect(url_for('index2'))
+                return redirect(url_for('verlaufsplan'))
 
         return '<h1>Falsche Zugangsdaten</h1>'
 
@@ -89,7 +96,7 @@ def verlaufsplan():
         anzahl = anzahl + 1
         print(erg)
 
-    return render_template('index2.html', len=anzahl, ergebnis=ergebnis)  # , name=current_user.username
+    return render_template('verlaufsplan.html', len=anzahl, ergebnis=ergebnis)  # , name=current_user.username
 
 
 if __name__ == '__main__':

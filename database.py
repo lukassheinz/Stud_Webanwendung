@@ -111,6 +111,16 @@ class Database:
         parameter = (id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
+    # Abfrage eines Benutzers
+    def get_benutzer(self, id):
+        sql_query = """
+            SELECT *
+            FROM benutzer
+            WHERE id = %s
+        """
+        parameter = (id)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
     # Eingabe eines Moduls
     def insert_modul(self,
                      nummer,
@@ -312,46 +322,47 @@ class Database:
         parameter = (benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    def get_module_empfohlen_pflicht(self, start_semester, current_semester, p_w):
+    def get_module_empfohlen_pflicht(self, start_semester, current_semester, p_w, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
         sql_query = """
         select *
-        from modul 
+        from modul m 
         where empfohlen_ab <= %s 
         and angebotshaeufigkeit LIKE %s 
         and pflicht_wahlpflicht = %s
+        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
                     """
-        parameter = (str(current_semester), sem, p_w)
+        parameter = (str(current_semester), sem, p_w, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    def get_module_empfohlen_wahlpflicht(self, start_semester, current_semester, p_w):
+    def get_module_empfohlen_wahlpflicht(self, start_semester, current_semester, p_w, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "select * from modul where empfohlen_ab <= %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s"
-        parameter = (str(current_semester), sem, p_w)
+        sql_query = "select * from modul where empfohlen_ab <= %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
+        parameter = (str(current_semester), sem, p_w, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    def get_module_nicht_empfohlen_pflicht(self, start_semester, current_semester, p_w):
+    def get_module_nicht_empfohlen_pflicht(self, start_semester, current_semester, p_w benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "select * from modul where empfohlen_ab > %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s"
-        parameter = (str(current_semester), sem, p_w)
+        sql_query = "select * from modul where empfohlen_ab > %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
+        parameter = (str(current_semester), sem, p_w, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    def get_module_nicht_empfohlen_wahlpflicht(self, start_semester, current_semester, p_w):
+    def get_module_nicht_empfohlen_wahlpflicht(self, start_semester, current_semester, p_w, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "select * from modul where empfohlen_ab > %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s"
-        parameter = (str(current_semester), sem, p_w)
+        sql_query = "select * from modul where empfohlen_ab > %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
+        parameter = (str(current_semester), sem, p_w, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
     #### die nötigen Pflichtlp für die Pflichtmodule / Wahlpflichtmodule für die jeweilige Vertiefung ####
@@ -374,70 +385,165 @@ class Database:
 
     #################################################################
     # Alle Module aus Vertiefung x
-    def get_VertiefungModule(self, start_semester, current_semester, vertiefung_id):
+    def get_VertiefungModule(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel,m.pflicht_wahlpflicht as pflicht_wahlpflicht, m.empfohlen_ab as empfohlen_ab, m.angebotshaeufigkeit as angebotshaeufigkeit, m.leistungspunkte as leistungspunkte, m.semesterwochenstunden as semesterwochenstunden, m.voraussetzungslp as voraussetzungslp, v.vertiefung_id as vertiefung_id, x.name as name from Modul m join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'gehoert_zu' JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s"
-        parameter = (str(current_semester), sem, vertiefung_id)
+        sql_query = """SELECT m.ID AS ID, 
+                        m.nummer AS nummer, 
+                        m.modultitel AS modultitel,
+                        m.pflicht_wahlpflicht as pflicht_wahlpflicht, 
+                        m.empfohlen_ab as empfohlen_ab, 
+                        m.angebotshaeufigkeit as angebotshaeufigkeit, 
+                        m.leistungspunkte as leistungspunkte, 
+                        m.semesterwochenstunden as semesterwochenstunden, 
+                        m.voraussetzungslp as voraussetzungslp, 
+                        v.vertiefung_id as vertiefung_id, 
+                        x.name as name 
+                        from Modul m 
+                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'gehoert_zu' 
+                        JOIN Vertiefung x on v.vertiefung_id = x.id 
+                        WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
+                        """
+        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
         # Alle Module aus Vertiefung x (nicht empfohlene Module)
 
-    def get_nichtEmpfohleneVertiefungModule(self, start_semester, current_semester, vertiefung_id):
+    def get_nichtEmpfohleneVertiefungModule(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel,m.pflicht_wahlpflicht as pflicht_wahlpflicht, m.empfohlen_ab as empfohlen_ab, m.angebotshaeufigkeit as angebotshaeufigkeit, m.leistungspunkte as leistungspunkte, m.semesterwochenstunden as semesterwochenstunden, m.voraussetzungslp as voraussetzungslp, v.vertiefung_id as vertiefung_id, x.name as name from Modul m join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'gehoert_zu' JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s"
-        parameter = (str(current_semester), sem, vertiefung_id)
+        sql_query = """SELECT m.ID AS ID, 
+                        m.nummer AS nummer, 
+                        m.modultitel AS modultitel,
+                        m.pflicht_wahlpflicht as pflicht_wahlpflicht, 
+                        m.empfohlen_ab as empfohlen_ab, 
+                        m.angebotshaeufigkeit as angebotshaeufigkeit, 
+                        m.leistungspunkte as leistungspunkte, 
+                        m.semesterwochenstunden as semesterwochenstunden, 
+                        m.voraussetzungslp as voraussetzungslp, 
+                        v.vertiefung_id as vertiefung_id, 
+                        x.name as name 
+                        from Modul m 
+                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'gehoert_zu' 
+                        JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
+                        """
+        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
         # Module aus anderen Vertiefungen für Vertiefung x
 
-    def get_andereModule(self, start_semester, current_semester, vertiefung_id):
+    def get_andereModule(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel,m.pflicht_wahlpflicht as pflicht_wahlpflicht, m.empfohlen_ab as empfohlen_ab, m.angebotshaeufigkeit as angebotshaeufigkeit, m.leistungspunkte as leistungspunkte, m.semesterwochenstunden as semesterwochenstunden, m.voraussetzungslp as voraussetzungslp, v.vertiefung_id as vertiefung_id, x.name as name from Modul m join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'erlaubt_in' JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Wahlpflicht'"
-        parameter = (str(current_semester), sem, vertiefung_id)
+        sql_query = """SELECT m.ID AS ID, 
+                        m.nummer AS nummer, 
+                        m.modultitel AS modultitel,
+                        m.pflicht_wahlpflicht as pflicht_wahlpflicht, 
+                        m.empfohlen_ab as empfohlen_ab, 
+                        m.angebotshaeufigkeit as angebotshaeufigkeit, 
+                        m.leistungspunkte as leistungspunkte, 
+                        m.semesterwochenstunden as semesterwochenstunden, 
+                        m.voraussetzungslp as voraussetzungslp, 
+                        v.vertiefung_id as vertiefung_id, 
+                        x.name as name 
+                        from Modul m 
+                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'erlaubt_in' 
+                        JOIN Vertiefung x on v.vertiefung_id = x.id 
+                        WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Wahlpflicht'
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
+                        """
+        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
     # Module aus anderen Vertiefungen für Vertiefung x (nicht Empfohlene Module)
-    def get_nichtEmpfohleneAndereModule(self, start_semester, current_semester, vertiefung_id):
+    def get_nichtEmpfohleneAndereModule(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel,m.pflicht_wahlpflicht as pflicht_wahlpflicht, m.empfohlen_ab as empfohlen_ab, m.angebotshaeufigkeit as angebotshaeufigkeit, m.leistungspunkte as leistungspunkte, m.semesterwochenstunden as semesterwochenstunden, m.voraussetzungslp as voraussetzungslp, v.vertiefung_id as vertiefung_id, x.name as name from Modul m join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'erlaubt_in' JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Wahlpflicht'"
-        parameter = (str(current_semester), sem, vertiefung_id)
+        sql_query = """SELECT m.ID AS ID, 
+                        m.nummer AS nummer, 
+                        m.modultitel AS modultitel,
+                        m.pflicht_wahlpflicht as pflicht_wahlpflicht, 
+                        m.empfohlen_ab as empfohlen_ab, 
+                        m.angebotshaeufigkeit as angebotshaeufigkeit, 
+                        m.leistungspunkte as leistungspunkte, 
+                        m.semesterwochenstunden as semesterwochenstunden, 
+                        m.voraussetzungslp as voraussetzungslp, 
+                        v.vertiefung_id as vertiefung_id, 
+                        x.name as name 
+                        from Modul m 
+                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'erlaubt_in' 
+                        JOIN Vertiefung x on v.vertiefung_id = x.id 
+                        WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Wahlpflicht'
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
+                        """
+        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
         # Pflicht Module der jewiligen Vertiefung
 
-    def get_VertiefungPflichtModule(self, start_semester, current_semester, vertiefung_id):
+    def get_VertiefungPflichtModule(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel,m.pflicht_wahlpflicht as pflicht_wahlpflicht, m.empfohlen_ab as empfohlen_ab, m.angebotshaeufigkeit as angebotshaeufigkeit, m.leistungspunkte as leistungspunkte, m.semesterwochenstunden as semesterwochenstunden, m.voraussetzungslp as voraussetzungslp, v.vertiefung_id as vertiefung_id, x.name as name from Modul m join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'pflicht_in' JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s"
-        parameter = (str(current_semester), sem, vertiefung_id)
+        sql_query = """SELECT m.ID AS ID,
+                        m.nummer AS nummer,
+                        m.modultitel AS modultitel,
+                        m.pflicht_wahlpflicht as pflicht_wahlpflicht,
+                        m.empfohlen_ab as empfohlen_ab,
+                        m.angebotshaeufigkeit as angebotshaeufigkeit,
+                        m.leistungspunkte as leistungspunkte,
+                        m.semesterwochenstunden as semesterwochenstunden,
+                        m.voraussetzungslp as voraussetzungslp,
+                        v.vertiefung_id as vertiefung_id,
+                        x.name as name
+                        from Modul m
+                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'pflicht_in'
+                        JOIN Vertiefung x on v.vertiefung_id = x.id
+                        WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
+                        """
+        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
     # Pflicht Module der jeweilige Vertiefung (nicht empfohlene)
-    def get_nichtEmpfohleneVertiefungPflichtModule(self, start_semester, current_semester, vertiefung_id):
+    def get_nichtEmpfohleneVertiefungPflichtModule(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel,m.pflicht_wahlpflicht as pflicht_wahlpflicht, m.empfohlen_ab as empfohlen_ab, m.angebotshaeufigkeit as angebotshaeufigkeit, m.leistungspunkte as leistungspunkte, m.semesterwochenstunden as semesterwochenstunden, m.voraussetzungslp as voraussetzungslp, v.vertiefung_id as vertiefung_id, x.name as name from Modul m join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'pflicht_in' JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s"
-        parameter = (str(current_semester), sem, vertiefung_id)
+        sql_query = """SELECT m.ID AS ID, 
+                        m.nummer AS nummer, 
+                        m.modultitel AS modultitel,
+                        m.pflicht_wahlpflicht as pflicht_wahlpflicht, 
+                        m.empfohlen_ab as empfohlen_ab, 
+                        m.angebotshaeufigkeit as angebotshaeufigkeit, 
+                        m.leistungspunkte as leistungspunkte, 
+                        m.semesterwochenstunden as semesterwochenstunden, 
+                        m.voraussetzungslp as voraussetzungslp, 
+                        v.vertiefung_id as vertiefung_id, 
+                        x.name as name 
+                        from Modul m 
+                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'pflicht_in' 
+                        JOIN Vertiefung x on v.vertiefung_id = x.id 
+                        WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
+                        """
+        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
     ################################################################################
-    def get_Einfuehrung_zu_Vertiefung2(self, start_semester, current_semester, vertiefung_id):
+    def get_Einfuehrung_zu_Vertiefung2(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
@@ -447,11 +553,12 @@ class Database:
                         FROM modul m
                         JOIN vertiefung_modul vm ON vm.modul_ID = m.ID
                         WHERE empfohlen_ab <= %s AND angebotshaeufigkeit LIKE %s AND vertiefung_ID = %s AND m.pflicht_wahlpflicht = "Einfuehrung" AND vm.zuordnung = "Pflicht_in";
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
                             """
-        parameter = (str(current_semester), sem, str(vertiefung_id))
+        parameter = (str(current_semester), sem, str(vertiefung_id), benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    def get_Einfuehrung_zu_Vertiefung3(self, start_semester, current_semester, vertiefung_id):
+    def get_Einfuehrung_zu_Vertiefung3(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
@@ -461,27 +568,62 @@ class Database:
                         FROM modul m
                         JOIN vertiefung_modul vm ON vm.modul_ID = m.ID
                         WHERE empfohlen_ab > %s AND angebotshaeufigkeit LIKE %s AND vertiefung_ID = %s AND m.pflicht_wahlpflicht = "Einfuehrung" AND vm.zuordnung = "Pflicht_in";
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
                             """
-        parameter = (str(current_semester), sem, str(vertiefung_id))
+        parameter = (str(current_semester), sem, str(vertiefung_id), benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
     ####NEW###
     # Ausgabe Grundlagenpraktikum der jewiligen Vertiefung
-    def get_Grundlagenpraktikum_zu_Vertiefung(self, start_semester, current_semester, vertiefung_id):
+    def get_Grundlagenpraktikum_zu_Vertiefung(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel,m.pflicht_wahlpflicht as pflicht_wahlpflicht, m.empfohlen_ab as empfohlen_ab, m.angebotshaeufigkeit as angebotshaeufigkeit, m.leistungspunkte as leistungspunkte, m.semesterwochenstunden as semesterwochenstunden, m.voraussetzungslp as voraussetzungslp, v.vertiefung_id as vertiefung_id, x.name as name from Modul m join vertiefung_modul v ON m.id = v.modul_id  JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Grundlagenpraktikum'"
-        parameter = (str(current_semester), sem, vertiefung_id)
+        sql_query = """SELECT m.ID AS ID, 
+                        m.nummer AS nummer, 
+                        m.modultitel AS modultitel,
+                        m.pflicht_wahlpflicht as pflicht_wahlpflicht, 
+                        m.empfohlen_ab as empfohlen_ab, 
+                        m.angebotshaeufigkeit as angebotshaeufigkeit, 
+                        m.leistungspunkte as leistungspunkte, 
+                        m.semesterwochenstunden as semesterwochenstunden, 
+                        m.voraussetzungslp as voraussetzungslp, 
+                        v.vertiefung_id as vertiefung_id, 
+                        x.name as name 
+                        from Modul m 
+                        join vertiefung_modul v ON m.id = v.modul_id  
+                        JOIN Vertiefung x on v.vertiefung_id = x.id 
+                        WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s 
+                        AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Grundlagenpraktikum'
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
+                        """
+        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
     # Ausgabe Grundlagenpraktikum der jeweiligen Vertiefung (in nicht empfohlenen Semester)
-    def get_Grundlagenpraktikum_zu_Vertiefung_nicht_empfohlen(self, start_semester, current_semester, vertiefung_id):
+    def get_Grundlagenpraktikum_zu_Vertiefung_nicht_empfohlen(self, start_semester, current_semester, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel,m.pflicht_wahlpflicht as pflicht_wahlpflicht, m.empfohlen_ab as empfohlen_ab, m.angebotshaeufigkeit as angebotshaeufigkeit, m.leistungspunkte as leistungspunkte, m.semesterwochenstunden as semesterwochenstunden, m.voraussetzungslp as voraussetzungslp, v.vertiefung_id as vertiefung_id, x.name as name from Modul m join vertiefung_modul v ON m.id = v.modul_id  JOIN Vertiefung x on v.vertiefung_id = x.id WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Grundlagenpraktikum'"
-        parameter = (str(current_semester), sem, vertiefung_id)
+        sql_query = """SELECT m.ID AS ID, 
+                        m.nummer AS nummer, 
+                        m.modultitel AS modultitel,
+                        m.pflicht_wahlpflicht as pflicht_wahlpflicht, 
+                        m.empfohlen_ab as empfohlen_ab, 
+                        m.angebotshaeufigkeit as angebotshaeufigkeit, 
+                        m.leistungspunkte as leistungspunkte, 
+                        m.semesterwochenstunden as semesterwochenstunden, 
+                        m.voraussetzungslp as voraussetzungslp, 
+                        v.vertiefung_id as vertiefung_id, 
+                        x.name as name 
+                        from Modul m 
+                        join vertiefung_modul v ON m.id = v.modul_id  
+                        JOIN Vertiefung x on v.vertiefung_id = x.id 
+                        WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s 
+                        AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Grundlagenpraktikum'
+                        and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s) 
+                        """
+        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()

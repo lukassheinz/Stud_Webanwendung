@@ -216,6 +216,8 @@ def verlaufsplan():
     return render_template('index2.html', len=anzahl, ergebnis=ergebnis)  # , name=current_user.username
     """
 
+    return render_template('verlaufsplan.html')
+
 wahlvertiefung_ID = 1
 wahlvertiefung_ID_2 = 2
 #immatrikulationssemester = "Wintersemester"

@@ -1,4 +1,5 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+import flask_login
+from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SelectField
@@ -11,7 +12,7 @@ from flask_mysqldb import MySQL
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/propra2022' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -183,8 +184,10 @@ def login():
         user = benutzer.query.filter_by(matrikelnummer=form.username.data).first()
         if user:
             if check_password_hash(user.passwort, form.password.data):
+                session["matrikelnummer"] = request.form["username"]
+                session["passwort"] = user.passwort
                 #login_user(user, remember=form.remember.data)
-                return redirect(url_for('verlaufsplan'))
+                return redirect(url_for('modulauswahl'))
 
         return '<h1>Falsche Zugangsdaten</h1>'
 
@@ -215,6 +218,7 @@ def verlaufsplan():
 
     return render_template('index2.html', len=anzahl, ergebnis=ergebnis)  # , name=current_user.username
     """
+    return render_template("verlaufsplan.html")
 
     return render_template('verlaufsplan.html')
 
@@ -226,7 +230,9 @@ start_semester = 1 # Wintersemester
 
 @app.route("/modulauswahl")
 def modulauswahl():
-
+    user_matrikelnummer = session["matrikelnummer"]
+    user_passwort_hash = session["passwort"]
+    print(user_matrikelnummer, user_passwort_hash)
     if wahlvertiefung_ID == 1:  # Embedded Systems
         pflicht_lp = 138  # muss 0 sein
         grundlagenpraktikum_lp = 0
@@ -306,16 +312,16 @@ def modulauswahl():
         current_semester = current_semester + 1
         print(current_semester)
 
-    if request.args.get("value"):
+    if request.is_json:
         idModule = request.args.get("value")
+        #modulText = request.args.get("text")
         selectedModules = request.args.get("selectedModules")
         print("selectedModules: ", selectedModules)
         print("ID: ", idModule)
-
-        #if idModule in selectedModules:
-        #    print("DUPLIKAT")
-
-
+        #TODO exception handling (flash? anstatt alert)
+        if idModule in selectedModules:
+            print("DUPLIKAT")
+            return None
         elementFromDB = dbase.get_single_module(idModule)
         element = Veranstaltung(str(elementFromDB[0][0]), str(elementFromDB[0][1]), str(elementFromDB[0][2]),
                                 str(elementFromDB[0][3]), str(elementFromDB[0][4]),
@@ -337,6 +343,8 @@ def modulauswahl():
 
         # TODO element in Datenbank einspeisen
         #dbase.insert_benutzer_modul(1, idModule, current_semester)
+
+    #TODO Gespeicherte Module aus Datenbank in ul als li hinzufügen (get_belegte_Module(benutzer_id, semester, stud_id) oder ähnlich
 
 
     return render_template("modulauswahl.html",

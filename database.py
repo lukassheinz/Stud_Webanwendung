@@ -347,7 +347,7 @@ class Database:
         parameter = (str(current_semester), sem, p_w, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    def get_module_nicht_empfohlen_pflicht(self, start_semester, current_semester, p_w benutzer_id):
+    def get_module_nicht_empfohlen_pflicht(self, start_semester, current_semester, p_w, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:

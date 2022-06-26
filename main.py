@@ -232,7 +232,35 @@ start_semester = 1 # Wintersemester
 def modulauswahl():
     user_matrikelnummer = session["matrikelnummer"]
     user_passwort_hash = session["passwort"]
+    user = dbase.get_user(user_matrikelnummer, user_passwort_hash)
+
+    user_id = session["user_ID"] = user[0][0]
+    user_wahlvertiefung_ID = session["wahlvertiefung_ID"] = user[0][5]
+    session["wahlvertiefung2_ID"] = user[0][9]
+    print(user_id)
+    print(user)
+    temp = dbase.get_vertiefungen2(user_wahlvertiefung_ID)
+    print(temp)
+    """
+    if not session.get("pflicht_LP"):
+        user_pflicht_lp = session["pflicht_LP"] = temp[0][3]
+    if not session.get("grundlagenpraktikum_LP"):
+        user_grundlagenpraktikum_lp = session["grundlagenpraktikum_LP"] = temp[0][4]
+    if not session.get("weitere_einfuehrung_LP"):
+        user_weitere_einfuehrung_LP = session["weitere_einfuehrung_LP"] = temp[0][5]
+    if not session.get("min_wahlpflicht_LP"):
+        user_min_wahlpflicht_LP = session["min_wahlpflicht_LP"] = temp[0][6]
+    if not session.get("max_wahlpflicht_LP"):
+        user_max_wahlpflicht_LP = session["max_wahlpflicht_LP"] = temp[0][7]
+    if not session.get("min_wahlpflicht_andere_LP"):
+        user_min_wahlpflicht_andere_LP = session["min_wahlpflicht_andere_LP"] = temp[0][8]
+    if not session.get("max_wahlpflicht_andere_LP"):
+        user_max_wahlpflicht_andere_LP = session["max_wahlpflicht_andere_LP"] = temp[0][9]
+
+    print(user_pflicht_lp, user_grundlagenpraktikum_lp, user_weitere_einfuehrung_LP)
+
     print(user_matrikelnummer, user_passwort_hash)
+    """
     if wahlvertiefung_ID == 1:  # Embedded Systems
         pflicht_lp = 138  # muss 0 sein
         grundlagenpraktikum_lp = 0
@@ -269,44 +297,55 @@ def modulauswahl():
 
     #Pflichtmodule
     if pflicht_lp != 0:
-        #TODO datenbankabfragen für alle in form von: gib alle module aus, die aber noch nicht im studienverlaufsplan sind
-        module1 = dbase.get_module_empfohlen_pflicht(start_semester, current_semester, "Pflicht")
-        pflichtkurse_nicht_empfohlen = dbase.get_module_nicht_empfohlen_pflicht(start_semester, current_semester, "Pflicht")
-        pflichtkurse_vertiefung_empfohlen = dbase.get_VertiefungPflichtModule(start_semester, current_semester, wahlvertiefung_ID)
-        pflichtkurse_vertiefung_nicht_empfohlen = dbase.get_nichtEmpfohleneVertiefungPflichtModule(start_semester, current_semester, wahlvertiefung_ID)
+        module1 = dbase.get_module_empfohlen_pflicht(start_semester, current_semester, "Pflicht", user_id)
+        pflichtkurse_nicht_empfohlen = dbase.get_module_nicht_empfohlen_pflicht(start_semester, current_semester, "Pflicht", user_id)
+        pflichtkurse_vertiefung_empfohlen = dbase.get_VertiefungPflichtModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
+        pflichtkurse_vertiefung_nicht_empfohlen = dbase.get_nichtEmpfohleneVertiefungPflichtModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
     #Grundlagenpraktikum
     if wahlvertiefung_ID == 1 or wahlvertiefung_ID == 3:
         if grundlagenpraktikum_lp == 0:
-            grundlagenpraktikum = dbase.get_Grundlagenpraktikum_zu_Vertiefung(start_semester, current_semester, wahlvertiefung_ID)
-            grundlagenpraktikum_nicht_empfohlen = dbase.get_Grundlagenpraktikum_zu_Vertiefung_nicht_empfohlen(start_semester, current_semester, wahlvertiefung_ID)
+            grundlagenpraktikum = dbase.get_Grundlagenpraktikum_zu_Vertiefung(start_semester, current_semester, wahlvertiefung_ID, user_id)
+            grundlagenpraktikum_nicht_empfohlen = dbase.get_Grundlagenpraktikum_zu_Vertiefung_nicht_empfohlen(start_semester, current_semester, wahlvertiefung_ID, user_id)
     #zweites Grundlagenmodul
     if andereGrundlage_lp == 0:
-        zweites_Grundlagenmodul = dbase.get_Einfuehrung_zu_Vertiefung2(start_semester, current_semester, wahlvertiefung_ID_2)
-        zweites_Grundlagenmodul_nicht_empfohlen = dbase.get_Einfuehrung_zu_Vertiefung3(start_semester, current_semester, wahlvertiefung_ID_2)
+        zweites_Grundlagenmodul = dbase.get_Einfuehrung_zu_Vertiefung2(start_semester, current_semester, wahlvertiefung_ID_2, user_id)
+        zweites_Grundlagenmodul_nicht_empfohlen = dbase.get_Einfuehrung_zu_Vertiefung3(start_semester, current_semester, wahlvertiefung_ID_2, user_id)
     #Wahlpflichtbereich
     if wahlvertiefung_ID == 1 or wahlvertiefung_ID == 3:
         if wahlpflicht_vertiefung_lp + andere_vertiefung_lp < 30:
-            empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, wahlvertiefung_ID)
-            nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, wahlvertiefung_ID)
+            empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
+            nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
             if andere_vertiefung_lp < 12:
                 if wahlvertiefung_ID == 1:
                     pass
                 if wahlvertiefung_ID == 3:
                     pass
-                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, wahlvertiefung_ID)
-                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, wahlvertiefung_ID)
+                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
+                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
     elif wahlvertiefung_ID == 2:
         if wahlpflicht_vertiefung_lp + andere_vertiefung_lp < 12:
-            empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, wahlvertiefung_ID)
-            nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, wahlvertiefung_ID)
+            empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
+            nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
             if andere_vertiefung_lp < 6:
-                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, wahlvertiefung_ID)
-                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, wahlvertiefung_ID)
+                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
+                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
     elif wahlvertiefung_ID == 4:
         if wahlpflicht_vertiefung_lp < 6:
-            empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, wahlvertiefung_ID)
-            nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, wahlvertiefung_ID)
+            empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
+            nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, wahlvertiefung_ID, user_id)
 
+
+
+    # TODO Gespeicherte Module aus Datenbank in ul als li hinzufügen (get_belegte_Module(benutzer_id, semester, stud_id) oder ähnlich
+    gewaehlte_module = dbase.get_gewaehlte_module(user_id, current_semester)
+    print(gewaehlte_module)
+    benutzer_modul_ids = []
+    gewaehlte_module_name = []
+    for i in range (len(gewaehlte_module)):
+        benutzer_modul_ids.append(gewaehlte_module[i][0])
+        gewaehlte_module_name.append(dbase.get_single_module(gewaehlte_module[i][4]))
+    for i in gewaehlte_module_name:
+        print(i)
 
     if request.args.get("button_text"):
         current_semester = current_semester + 1
@@ -314,14 +353,37 @@ def modulauswahl():
 
     if request.is_json:
         idModule = request.args.get("value")
-        #modulText = request.args.get("text")
-        selectedModules = request.args.get("selectedModules")
-        print("selectedModules: ", selectedModules)
+        id_in_benutzer_modul = request.args.get("id")
         print("ID: ", idModule)
+        print(id_in_benutzer_modul)
+        if(request.args.get("class") == "semester-list"):
+            print("class", request.args.get("class"))
+            dbase.delete_belegtes_modul(id_in_benutzer_modul)
+            for i in gewaehlte_module_name:
+                if idModule in i:
+                    gewaehlte_module_name.remove(idModule)
+
+            return render_template("modulauswahl.html",
+                           module1=module1,
+                           pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
+                           pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
+                           pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
+                           grundlagenpraktikum=grundlagenpraktikum,
+                           grundlagenpraktikum_nicht_empfohlen=grundlagenpraktikum_nicht_empfohlen,
+                           zweites_Grundlagenmodul=zweites_Grundlagenmodul,
+                           zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
+                           empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
+                           nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
+                           andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
+                           andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
+                           benutzer_modul_ids = benutzer_modul_ids,
+                           gewaehlte_module_name = gewaehlte_module_name,)
+
+        """
         #TODO exception handling (flash? anstatt alert)
-        if idModule in selectedModules:
-            print("DUPLIKAT")
-            return None
+        #if idModule in selectedModules:
+        #    print("DUPLIKAT")
+        #    return None
         elementFromDB = dbase.get_single_module(idModule)
         element = Veranstaltung(str(elementFromDB[0][0]), str(elementFromDB[0][1]), str(elementFromDB[0][2]),
                                 str(elementFromDB[0][3]), str(elementFromDB[0][4]),
@@ -330,21 +392,28 @@ def modulauswahl():
         sem.add_course(element)
         print(element)
         print(str(sem.courses))
+        """
 
-        return jsonify({"ID": str(elementFromDB[0][0]),
-                        "nummer": str(elementFromDB[0][1]),
-                        "modultitel": str(elementFromDB[0][2]),
-                        "pflicht_wahlpflicht": str(elementFromDB[0][3]),
-                        "empfohlen_ab": str(elementFromDB[0][4]),
-                        "angebotshaeufigkeit": str(elementFromDB[0][5]),
-                        "leistungspunkte": str(elementFromDB[0][6]),
-                        "semesterwochenstunden": str(elementFromDB[0][7]),
-                        "voraussetzungslp": str(elementFromDB[0][8])})
+        dbase.insert_benutzer_modul(user_id, idModule, current_semester)
 
-        # TODO element in Datenbank einspeisen
-        #dbase.insert_benutzer_modul(1, idModule, current_semester)
+        #gewaehlte_module = dbase.get_gewaehlte_module(user_id, current_semester)
 
-    #TODO Gespeicherte Module aus Datenbank in ul als li hinzufügen (get_belegte_Module(benutzer_id, semester, stud_id) oder ähnlich
+        return render_template("modulauswahl.html",
+                           module1=module1,
+                           pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
+                           pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
+                           pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
+                           grundlagenpraktikum=grundlagenpraktikum,
+                           grundlagenpraktikum_nicht_empfohlen=grundlagenpraktikum_nicht_empfohlen,
+                           zweites_Grundlagenmodul=zweites_Grundlagenmodul,
+                           zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
+                           empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
+                           nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
+                           andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
+                           andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
+                           gewaehlte_module_name = gewaehlte_module_name,
+                           benutzer_modul_ids = benutzer_modul_ids,)
+
 
 
     return render_template("modulauswahl.html",
@@ -359,7 +428,9 @@ def modulauswahl():
                            empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
                            nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
                            andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
-                           andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse)
+                           andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
+                           gewaehlte_module_name = gewaehlte_module_name,
+                           benutzer_modul_ids = benutzer_modul_ids,)
 
 
 if __name__ == '__main__':

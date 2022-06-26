@@ -9,11 +9,18 @@ class Database:
     def get_vertiefungen(self):
         return self.engine.execute('select * from vertiefung').fetchall()
 
+    def get_vertiefungen2(self, vertiefung_ID):
+        return self.engine.execute("select * from vertiefung where ID =" + str(vertiefung_ID)).fetchall()
+
     def get_single_module(self, modul_ID):
         sql_query = "select * from modul where ID = %s"
         parameter = (str(modul_ID))
         return self.engine.execute(sql_query, parameter).fetchall()
 
+    def get_user(self, matrikelnummer, passwort_hash):
+        sql_query = "select * from benutzer where matrikelnummer = %s and passwort = %s"
+        parameter = (matrikelnummer, passwort_hash)
+        return self.engine.execute(sql_query, parameter).fetchall()
 
     def get_module_empfohlen(self, start_semester, current_semester):
         if start_semester == 1:
@@ -343,7 +350,7 @@ class Database:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "select * from modul where empfohlen_ab <= %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
+        sql_query = "select * from modul m where empfohlen_ab <= %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
         parameter = (str(current_semester), sem, p_w, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
@@ -352,7 +359,7 @@ class Database:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "select * from modul where empfohlen_ab > %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
+        sql_query = "select * from modul m where empfohlen_ab > %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
         parameter = (str(current_semester), sem, p_w, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
@@ -361,7 +368,7 @@ class Database:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
             sem = '%Wi%' if current_semester % 2 == 0 else '%So%'
-        sql_query = "select * from modul where empfohlen_ab > %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
+        sql_query = "select * from modul m where empfohlen_ab > %s and angebotshaeufigkeit LIKE %s and pflicht_wahlpflicht = %s and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)"
         parameter = (str(current_semester), sem, p_w, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
@@ -627,3 +634,11 @@ class Database:
                         """
         parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
+
+    def get_gewaehlte_module(self, benutzer_ID, semester):
+        sql_query = "SELECT * FROM benutzer_modul WHERE benutzer_ID = %s and semester = %s"
+        parameter = (str(benutzer_ID), semester)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+    def delete_belegtes_modul(self, ID):
+        return self.engine.execute("DELETE FROM benutzer_modul WHERE ID = " + str(ID))

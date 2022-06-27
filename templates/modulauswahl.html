@@ -103,5 +103,13 @@
 
 <button class="weiterbutton" value="weiter">Weiter</button>
 
+<ul id = "belegte-module">
+    gewählte Module
+    {% for item in gewaehlte_module_name %}
+    {% for x in benutzer_modul_ids %}
+        <li class = "semester-list" value = {{item[0][0]}} id = {{x}}>{{item}}</li>
+    {% endfor %}
+    {% endfor %}
+</ul>
 
 </body>

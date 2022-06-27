@@ -24,92 +24,99 @@
 
 <body>
 
-<ul>
+<ul style="list-style-type:none;">
     empfohlene Pflichtmodule
     {% for item in module1 %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     nicht empfohlene Pflichtmodule
     {% for item in pflichtkurse_nicht_empfohlen %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     empfohlene Pflichtmodule aus der gewählten Vertiefung
     {% for item in pflichtkurse_vertiefung_empfohlen %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     nicht empfohlene Pflichtkurse aus der gewählten Vertiefung
     {% for item in pflichtkurse_vertiefung_nicht_empfohlen %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     empfohlenes Grundlagenpraktikum
     {% for item in grundlagenpraktikum %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     nicht empfohlenes Grundlagenpraktikum
     {% for item in grundlagenpraktikum_nicht_empfohlen %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     empfohlenes zweites Grundlagenmodul
     {% for item in zweites_Grundlagenmodul %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     nicht empfohlenes zweites Grundlagenmodul
     {% for item in zweites_Grundlagenmodul_nicht_empfohlen %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     empfohlene Wahlpflichtkurse
     {% for item in empfohlene_wahlpflichtkurse %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     nicht empfohlene Wahlpflichtkurse
     {% for item in nichtempfohlene_wahlpflichtkurse %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     empfohlene Wahlpflichkturse aus anderen Vertiefungen
     {% for item in andere_empfohlene_wahlpflichtkurse %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
-<ul>
+<ul style="list-style-type:none;">
     nicht empfohlene Wahlpfichtkurse aus anderen Vertiefungen
     {% for item in andere_nichtempfohlene_wahlpflichtkurse %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
 </ul>
 
-<ul class="semester-list">
-
-</ul>
-
 <button class="weiterbutton" value="weiter">Weiter</button>
 
-<ul id = "belegte-module">
+<ul id = "belegte-module" style="list-style-type:none;">
     gewählte Module
+    {% set data = namespace(temp_bool=False) %}
     {% for item in gewaehlte_module_name %}
-    {% for x in benutzer_modul_ids %}
+    {% set data.temp_bool = false %}
+    {% for x in benutzer_modul_ids if data.temp_bool == false %}
         <li class = "semester-list" value = {{item[0][0]}} id = {{x}}>{{item}}</li>
+    {% set data.temp_bool = true %}
     {% endfor %}
     {% endfor %}
+</ul>
+
+<ul class = "Zähler" style="list-style-type:none;" >
+    <li>PflichtLP ist: {{user_pflicht_lp_ist}} / PflichtLP soll: {{user_pflicht_lp_soll}}</li>
+    <li>GrundlagenpraktikumLP ist: {{user_grundlagenpraktikum_lp_ist}} / GrundlagenpraktikumLP soll: {{user_grundlagenpraktikum_lp_soll}}</li>
+    <li>Weitere Einführung LP ist: {{user_weitere_einfuehrung_LP_ist}} / Weitere Einführung LP soll: {{user_weitere_einfuehrung_LP_soll}}</li>
+    <li>WahlpflichtLP ist: {{user_wahlpflicht_LP_ist}} / WahlfplichtLP soll: {{user_min_wahlpflicht_LP}} - {{user_max_wahlpflicht_LP}}</li>
+    <li>WahlpflichtLP andere Module ist: {{user_wahlpflicht_andere_LP_ist}} / WahlfplichtLP andere Module soll: {{user_min_wahlpflicht_andere_LP}} - {{user_max_wahlpflicht_andere_LP}}</li>
 </ul>
 
 </body>

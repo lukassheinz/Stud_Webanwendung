@@ -9,21 +9,40 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user, login_manager
 from flask_mysqldb import MySQL
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
 
 
 app.config['SECRET_KEY'] = 'xxxxxxxxxxxxxxxxx!'
+admin = Admin(app)
 bootstrap = Bootstrap(app)
+
+
+class SecureModelView(ModelView):
+    def is_accessible(self):
+        if "logged_in" in session:
+            return True
+        else:
+            abort(403)
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+
+
+@login_manager.user_loader
+def load_user(matrikelnummer):
+    return benutzer.query.get(int(matrikelnummer))
 
 class benutzer(UserMixin, db.Model):
     matrikelnummer = db.Column(db.Integer, primary_key=True)
@@ -36,7 +55,26 @@ class benutzer(UserMixin, db.Model):
     immatrikulationsjahr = db.Column(db.String(4))
     wahlvertiefung2_ID = db.Column(db.Integer)
 
+class modul(UserMixin, db.Model):
+    ID = db.Column(db.Integer, primary_key=True)
+    nummer = db.Column(db.String(50))
+    modultitel = db.Column(db.String(50))
+    pflicht_wahlpflicht = db.Column(db.String(50))
+    empfohlen_ab = db.Column(db.Integer)
+    angebotshaeufigkeit = db.Column(db.String(50))
+    leistungspunkte = db.Column(db.Integer)
+    semesterwochenstunden = db.Column(db.Integer)
+    voraussetzungslp = db.Column(db.Integer)
 
+
+
+class prof(UserMixin, db.Model):
+    ID = db.Column(db.Integer, primary_key=True)
+    passwort = db.Column(db.String(80))
+
+class ProfLoginForm(FlaskForm):
+    username = StringField('ID', validators=[InputRequired(), Length(min=4, max=15)])
+    password = PasswordField('Passwort', validators=[InputRequired(), Length(min=8, max=80)])
 
 class Studienverlaufsplan:
 
@@ -147,9 +185,6 @@ class Veranstaltung:
 
 
 
-@login_manager.user_loader
-def load_user(matrikelnummer):
-    return benutzer.query.get(int(matrikelnummer))
 
 class LoginForm(FlaskForm):
     username = StringField('Matrikelnummer', validators=[InputRequired(), Length(min=4, max=15)])
@@ -207,6 +242,28 @@ def signup():
 
     return render_template('signup.html', form=form)
 
+
+@app.route('/proflogin', methods=['GET', 'POST'])
+def proflogin():
+    form = ProfLoginForm()
+    if form.validate_on_submit():
+        userx = prof.query.filter_by(ID=form.username.data).first()
+        if userx:
+            if userx.passwort == form.password.data:
+                session['logged_in'] = True
+                return redirect('/admin')
+            else:
+                return '<h1>Falsche Zugangsdaten</h1>'
+
+    return render_template('proflogin.html', form=form)
+
+
+
+admin.add_view((SecureModelView( modul, db.session)))
+admin.add_view((SecureModelView( benutzer, db.session)))
+
+
+
 @app.route('/verlaufsplan')
 def verlaufsplan():
     """
@@ -220,7 +277,7 @@ def verlaufsplan():
     """
     return render_template("verlaufsplan.html")
 
-    return render_template('verlaufsplan.html')
+
 
 wahlvertiefung_ID = 1
 wahlvertiefung_ID_2 = 2
@@ -229,6 +286,7 @@ start_semester = 1 # Wintersemester
 
 
 @app.route("/modulauswahl")
+#@login_required
 def modulauswahl():
     user_matrikelnummer = session["matrikelnummer"]
     user_passwort_hash = session["passwort"]
@@ -431,6 +489,13 @@ def modulauswahl():
                            andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
                            gewaehlte_module_name = gewaehlte_module_name,
                            benutzer_modul_ids = benutzer_modul_ids,)
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    session.clear()
+    return redirect('/')
+   # return redirect(url_for('modulauswahl'))
 
 
 if __name__ == '__main__':

@@ -103,11 +103,11 @@
     gewählte Module
     {% set data = namespace(temp_bool=False) %}
     {% for item in gewaehlte_module_name %}
-    {% set data.temp_bool = false %}
-    {% for x in benutzer_modul_ids if data.temp_bool == false %}
-        <li class = "semester-list" value = {{item[0][0]}} id = {{x}}>{{item}}</li>
-    {% set data.temp_bool = true %}
-    {% endfor %}
+        {% set data.temp_bool = false %}
+        {% for x in benutzer_modul_ids if data.temp_bool == false %}
+            <li class = "semester-list" value = {{item[0][0]}} id = {{x}}>{{item}}</li>
+            {% set data.temp_bool = true %}
+        {% endfor %}
     {% endfor %}
 </ul>
 

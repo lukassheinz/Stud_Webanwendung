@@ -15,7 +15,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/propra2022' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -45,7 +45,8 @@ def load_user(matrikelnummer):
     return benutzer.query.get(int(matrikelnummer))
 
 class benutzer(UserMixin, db.Model):
-    matrikelnummer = db.Column(db.Integer, primary_key=True)
+    ID = db.Column(db.Integer, primary_key=True)
+    matrikelnummer = db.Column(db.Integer)
     vorname = db.Column(db.String(50))
     nachname = db.Column(db.String(50))
     email = db.Column(db.String(50), unique=True)

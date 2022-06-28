@@ -221,7 +221,7 @@ def login():
             if check_password_hash(user.passwort, form.password.data):
                 session["matrikelnummer"] = request.form["username"]
                 session["passwort"] = user.passwort
-                #login_user(user, remember=form.remember.data)
+                login_user(user, remember=form.remember.data)
                 return redirect(url_for('modulauswahl'))
 
         return '<h1>Falsche Zugangsdaten</h1>'
@@ -286,7 +286,7 @@ start_semester = 1 # Wintersemester
 
 
 @app.route("/modulauswahl")
-#@login_required
+@login_required
 def modulauswahl():
     user_matrikelnummer = session["matrikelnummer"]
     user_passwort_hash = session["passwort"]

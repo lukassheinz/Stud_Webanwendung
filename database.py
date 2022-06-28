@@ -262,60 +262,162 @@ class Database:
         return self.engine.execute(
             'SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel, v.modulvoraussetzung_id as modulvoraussetzung, x.nummer as nummer, x.modultitel as Modultitel_Voraussetzungsmodul FROM Modul m Join Voraussetzung_Modul v on m.id = v.modul_id Join Modul x on v.modulvoraussetzung_id = x.id').fetchall()
 
-    # NEW # NEW # NEW # NEW # NEW # Teil 3
 
-    # Summe der Pflichtmodule eines Benutzers je nach eingegebenem Parameter für abgeschlossene bzw. belegte Module
-    def get_Summe_Pflichtmodule(self, benutzer_id, status):
+    ### LEISTUNGSPUNKTE ###
+
+    # LP-Summe der Grund_Pflichtmodule ohne Vertiefung
+    def get_Summe_Pflichtmodule(self, benutzer_id):
         sql_query = """
         SELECT SUM(leistungspunkte)
         FROM modul m
         JOIN benutzer_modul bm ON bm.modul_ID = m.ID
-        WHERE benutzer_ID = %s AND bm.status = %s AND m.pflicht_wahlpflicht = "Pflicht";
+        WHERE benutzer_ID = %s AND m.pflicht_wahlpflicht = "Pflicht";
         """
-        parameter = (benutzer_id, status)
+        parameter = (benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    # Summe der Vertiefungspflichtmodule eines Benutzers je nach eingegebenen Parameter für abgeschlossene bzw belegte Module
-    def get_Summe_Pflicht_Vertiefung(self, benutzer_id, status):
+    # LP-Summe der Pflichtmodule eines Benutzers mit gewählter Vertiefung
+    def get_Summe_Pflicht_Vertiefung(self, id, benutzer_id, semester):
         sql_query = """
-        SELECT SUM(leistungspunkte)
+        SELECT IFNULL(SUM(leistungspunkte), 0)
         FROM modul m
-        JOIN benutzer_modul bm
-        ON bm.modul_ID = m.ID
-        JOIN benutzer b ON b.ID = bm.benutzer_ID
-        JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
-        AND benutzer_ID = %s AND bm.status = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "Pflicht_in";
+        WHERE (m.pflicht_wahlpflicht = "Pflicht" OR m.ID IN (
+            SELECT modul_ID
+		    FROM vertiefung_modul vm
+		    JOIN benutzer b ON b.wahlvertiefung_ID = vm.vertiefung_ID
+		    WHERE b.ID = %s AND zuordnung = "Pflicht_in")) 
+        AND m.ID IN (
+                SELECT modul_ID
+		        FROM benutzer_modul
+                WHERE benutzer_ID = %s AND semester = %s)
         """
-        parameter = (benutzer_id, status)
+        parameter = (id, benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    # Summe der Wahlpflichtmodule in der gewählten Vertiefung eines Benutzers je nach eingegebenem Parameter für abgeschlossene bzw. belegte Module
-    def get_Summe_WPF_Vertiefung(self, benutzer_id, status):
+    # LP-Summe der Wahlpflichtmodule in der gewählten Vertiefung eines Benutzers
+    def get_Summe_WPF_Vertiefung(self, benutzer_id, semester):
         sql_query = """
-        SELECT SUM(leistungspunkte)
+        SELECT IFNULL(SUM(leistungspunkte), 0)
         FROM modul m
-        JOIN benutzer_modul bm
-        ON bm.modul_ID = m.ID
+        JOIN benutzer_modul bm ON bm.modul_ID = m.ID
         JOIN benutzer b ON b.ID = bm.benutzer_ID
         JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
-        AND benutzer_ID = %s AND bm.status = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "gehoert_zu";
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "gehoert_zu" AND bm.semester = %s;
         """
-        parameter = (benutzer_id, status)
+        parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
 
-    # Summe der Wahlpflichtmodule der anderen Vertiefungen eines Benutzers je nach eingegebenem Parameter für abgeschlossene bzw. belegte Module
-    def get_Summe_WPF_andere(self, benutzer_id, status):
+    # LP-Summe der Wahlpflichtmodule der anderen Vertiefungen eines Benutzers
+    def get_Summe_WPF_andere(self, benutzer_id, semester):
         sql_query = """
-        SELECT SUM(leistungspunkte)
+        SELECT IFNULL(SUM(leistungspunkte), 0)
         FROM modul m
-        JOIN benutzer_modul bm
-        ON bm.modul_ID = m.ID
+        JOIN benutzer_modul bm ON bm.modul_ID = m.ID
         JOIN benutzer b ON b.ID = bm.benutzer_ID
         JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
-        AND benutzer_ID = %s AND bm.status = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "erlaubt_in";
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "erlaubt_in" AND semester= %s;
         """
-        parameter = (benutzer_id, status)
+        parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
+
+    # LP-Summe der Grundlagenpraktika eines Benutzers
+    def get_Summe_Grundlagenpraktika(self, benutzer_id, semester):
+        sql_query = """
+        SELECT IFNULL(SUM(leistungspunkte), 0)
+        FROM modul m
+        JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+        JOIN benutzer b ON b.ID = bm.benutzer_ID
+        JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Grundlagenpraktikum" AND vm.zuordnung = "erlaubt_in" AND semester = %s;
+        """
+        parameter = (benutzer_id, semester)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+    # LP-Summe weitere Einfuehrungsmodule eines Benutzers
+    def get_Summe_weitere_Einfuehrung(self, benutzer_id, semester):
+        sql_query = """
+        SELECT IFNULL(SUM(leistungspunkte), 0)
+        FROM modul m
+        JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+        JOIN benutzer b ON b.ID = bm.benutzer_ID
+        JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Einfuehrung" AND vm.zuordnung = "erlaubt_in" AND semester = %s;
+        """
+        parameter = (benutzer_id, semester)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+    ### SEMESTERWOCHENSTUNDEN ###
+
+        # SWS-Summe der Pflichtmodule eines Benutzers mit gewählter Vertiefung
+        def get_Summe_Pflicht_Vertiefung(self, id, benutzer_id, semester):
+            sql_query = """
+            SELECT IFNULL(SUM(semesterwochenstunden), 0)
+            FROM modul m
+            WHERE (m.pflicht_wahlpflicht = "Pflicht" OR m.ID IN (
+                SELECT modul_ID
+    		    FROM vertiefung_modul vm
+    		    JOIN benutzer b ON b.wahlvertiefung_ID = vm.vertiefung_ID
+    		    WHERE b.ID = %s AND zuordnung = "Pflicht_in")) 
+            AND m.ID IN (
+                    SELECT modul_ID
+    		        FROM benutzer_modul
+                    WHERE benutzer_ID = %s AND semester = %s)
+            """
+            parameter = (id, benutzer_id, semester)
+            return self.engine.execute(sql_query, parameter).fetchall()
+
+        # SWS-Summe der Wahlpflichtmodule in der gewählten Vertiefung eines Benutzers
+        def get_Summe_WPF_Vertiefung(self, benutzer_id, semester):
+            sql_query = """
+            SELECT IFNULL(SUM(semesterwochenstunden), 0)
+            FROM modul m
+            JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+            JOIN benutzer b ON b.ID = bm.benutzer_ID
+            JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+            AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "gehoert_zu" AND bm.semester = %s;
+            """
+            parameter = (benutzer_id, semester)
+            return self.engine.execute(sql_query, parameter).fetchall()
+
+        # SWS-Summe der Wahlpflichtmodule der anderen Vertiefungen eines Benutzers
+        def get_Summe_WPF_andere(self, benutzer_id, semester):
+            sql_query = """
+            SELECT IFNULL(SUM(semesterwochenstunden), 0)
+            FROM modul m
+            JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+            JOIN benutzer b ON b.ID = bm.benutzer_ID
+            JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+            AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "erlaubt_in" AND semester= %s;
+            """
+            parameter = (benutzer_id, semester)
+            return self.engine.execute(sql_query, parameter).fetchall()
+
+        # SWS-Summe der Grundlagenpraktika eines Benutzers
+        def get_Summe_Grundlagenpraktika(self, benutzer_id, semester):
+            sql_query = """
+            SELECT IFNULL(SUM(semesterwochenstunden), 0)
+            FROM modul m
+            JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+            JOIN benutzer b ON b.ID = bm.benutzer_ID
+            JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+            AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Grundlagenpraktikum" AND vm.zuordnung = "erlaubt_in" AND semester = %s;
+            """
+            parameter = (benutzer_id, semester)
+            return self.engine.execute(sql_query, parameter).fetchall()
+
+        # SWS-Summe weitere Einfuehrungsmodule eines Benutzers
+        def get_Summe_weitere_Einfuehrung(self, benutzer_id, semester):
+            sql_query = """
+            SELECT IFNULL(SUM(semesterwochenstunden), 0)
+            FROM modul m
+            JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+            JOIN benutzer b ON b.ID = bm.benutzer_ID
+            JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+            AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Einfuehrung" AND vm.zuordnung = "erlaubt_in" AND semester = %s;
+            """
+            parameter = (benutzer_id, semester)
+            return self.engine.execute(sql_query, parameter).fetchall()
+
 
     # Anzeige der Modulvoraussetzungen aller nicht belegten Module eines Benutzers
     def get_Voraussetzung_nicht_belegter_Module(self, benutzer_id):

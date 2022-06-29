@@ -745,5 +745,7 @@ class Database:
     def delete_belegtes_modul(self, ID):
         return self.engine.execute("DELETE FROM benutzer_modul WHERE ID = " + str(ID))
 
-    def xyz(self):
-        return None
+    def get_vorherige_belegte_modul_ids(self, benutzer_id, current_semester):
+        sql_query = "select modul_ID from benutzer_modul where benutzer_ID = %s and semester < %s"
+        parameter = (benutzer_id, current_semester)
+        return self.engine.execute(sql_query,parameter).fetchall()

@@ -471,7 +471,7 @@ def modulauswahl():
                                    semesterwochenstunden = semesterwochenstunden)
 
         # TODO Voraussetzungen prüfen
-        """
+        x = False
         id_list_voraussetzungen = []
         kurs_voraussetzung = dbase.get_modul_voraussetzungen(str(idModule))
         print(kurs_voraussetzung)
@@ -479,17 +479,17 @@ def modulauswahl():
             if str(idModule) == str(v[2]):
                 id_list_voraussetzungen.append(str(v[1]))
                 for i in id_list_voraussetzungen:
-                    # Bis hier sollte es funktionieren
-                    #TODO Datenbankabfrage für id_list_temp_vor_sem
-
-                    for t in id_list_temp_vor_sem:
+                    id_list_temp_vor_sem = dbase.get_vorherige_belegte_modul_ids(user_id, current_semester)
+                    for t in id_list_temp_vor_sem and x == False:
+                        print(t)
                         if i == t:
                             break
                     else:
-                        #TODO Flash für die Warnung
-                        print("Kurs hat eine Voraussetzung mit der ID: " + str(i) +
-                                  ", welche du noch nicht abgeschlossen hast")
-        """
+                        if x == False:
+                            #TODO Flash für die Warnung
+                            print("Kurs hat eine Voraussetzung mit der ID: " + str(i) +
+                                      ", welche du noch nicht abgeschlossen hast")
+                            x = True
 
 
         elementFromDB = dbase.get_single_module(idModule)

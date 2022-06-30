@@ -15,7 +15,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:waterslide@localhost/Studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -223,7 +223,7 @@ def login():
                 session["matrikelnummer"] = request.form["username"]
                 session["passwort"] = user.passwort
                 login_user(user, remember=form.remember.data)
-                return redirect(url_for('index'))
+                return redirect(url_for('modulauswahl'))
 
         return '<h1>Falsche Zugangsdaten</h1>'
 
@@ -471,7 +471,7 @@ def modulauswahl():
                                    semesterwochenstunden = semesterwochenstunden)
 
         # TODO Voraussetzungen prüfen
-        x = False
+        """
         id_list_voraussetzungen = []
         kurs_voraussetzung = dbase.get_modul_voraussetzungen(str(idModule))
         print(kurs_voraussetzung)
@@ -479,17 +479,17 @@ def modulauswahl():
             if str(idModule) == str(v[2]):
                 id_list_voraussetzungen.append(str(v[1]))
                 for i in id_list_voraussetzungen:
-                    id_list_temp_vor_sem = dbase.get_vorherige_belegte_modul_ids(user_id, current_semester)
-                    for t in id_list_temp_vor_sem and x == False:
-                        print(t)
+                    # Bis hier sollte es funktionieren
+                    #TODO Datenbankabfrage für id_list_temp_vor_sem
+
+                    for t in id_list_temp_vor_sem:
                         if i == t:
                             break
                     else:
-                        if x == False:
-                            #TODO Flash für die Warnung
-                            print("Kurs hat eine Voraussetzung mit der ID: " + str(i) +
-                                      ", welche du noch nicht abgeschlossen hast")
-                            x = True
+                        #TODO Flash für die Warnung
+                        print("Kurs hat eine Voraussetzung mit der ID: " + str(i) +
+                                  ", welche du noch nicht abgeschlossen hast")
+        """
 
 
         elementFromDB = dbase.get_single_module(idModule)

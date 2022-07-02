@@ -49,16 +49,20 @@
     {% endfor %}
 </ul>
 <ul style="list-style-type:none;">
+    {% if grundlagenpraktikum %}
     empfohlenes Grundlagenpraktikum
     {% for item in grundlagenpraktikum %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
+    {% endif %}
 </ul>
 <ul style="list-style-type:none;">
+    {% if grundlagenpraktikum_nicht_empfohlen %}
     nicht empfohlenes Grundlagenpraktikum
     {% for item in grundlagenpraktikum_nicht_empfohlen %}
         <li class = li value = {{item[0]}}>{{item}}</li>
     {% endfor %}
+    {% endif %}
 </ul>
 <ul style="list-style-type:none;">
     empfohlenes zweites Grundlagenmodul
@@ -113,10 +117,14 @@
 
 <ul class = "Zähler" style="list-style-type:none;" >
     <li>PflichtLP ist: {{user_pflicht_lp_ist}} / PflichtLP soll: {{user_pflicht_lp_soll}}</li>
-    <li>GrundlagenpraktikumLP ist: {{user_grundlagenpraktikum_lp_ist}} / GrundlagenpraktikumLP soll: {{user_grundlagenpraktikum_lp_soll}}</li>
+    {% if user_grundlagenpraktikum_lp_ist and user_grundlagenpraktikum_lp_soll %}
+        <li>GrundlagenpraktikumLP ist: {{user_grundlagenpraktikum_lp_ist}} / GrundlagenpraktikumLP soll: {{user_grundlagenpraktikum_lp_soll}}</li>
+    {% endif %}
     <li>Weitere Einführung LP ist: {{user_weitere_einfuehrung_LP_ist}} / Weitere Einführung LP soll: {{user_weitere_einfuehrung_LP_soll}}</li>
     <li>WahlpflichtLP ist: {{user_wahlpflicht_LP_ist}} / WahlfplichtLP soll: {{user_min_wahlpflicht_LP}} - {{user_max_wahlpflicht_LP}}</li>
     <li>WahlpflichtLP andere Module ist: {{user_wahlpflicht_andere_LP_ist}} / WahlfplichtLP andere Module soll: {{user_min_wahlpflicht_andere_LP}} - {{user_max_wahlpflicht_andere_LP}}</li>
+    <li>LP Gesamt: {{lp_gesamt}}</li>
+    <li>Semesterwochenstunden: {{semesterwochenstunden}}</li>
 </ul>
 
 </body>

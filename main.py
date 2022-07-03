@@ -12,27 +12,44 @@ from flask_mysqldb import MySQL
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
-
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:waterslide@localhost/Studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
 
 
 app.config['SECRET_KEY'] = 'xxxxxxxxxxxxxxxxx!'
-admin = Admin(app)
+admin = Admin(app, template_mode='bootstrap3', name='Verwaltung')
 bootstrap = Bootstrap(app)
 
 
 class SecureModelView(ModelView):
+    # can_delete = False  # disable model deletion
+    page_size = 100  # the number of entries to display on the list view
+    #create_modal = True
+    #edit_modal = True
+
+    form_choices = {
+        ####### Für Module
+        'pflicht_wahlpflicht': [('Pflicht', 'Pflicht'), ('Wahlpflicht', 'Wahlpflicht'), ('Einfuehrung', 'Einfuehrung'),
+                                ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
+        'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
+        'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
+                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
+        'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                              ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'immatrikulationssemester': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester')]
+    }
+
     def is_accessible(self):
         if "logged_in" in session:
             return True
         else:
             abort(403)
-
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -75,7 +92,7 @@ class prof(UserMixin, db.Model):
 
 class ProfLoginForm(FlaskForm):
     username = StringField('ID', validators=[InputRequired(), Length(min=4, max=15)])
-    password = PasswordField('Passwort', validators=[InputRequired(), Length(min=8, max=80)])
+    password = PasswordField('Passwort', validators=[InputRequired(), Length(max=80)])
 
 class Studienverlaufsplan:
 
@@ -280,7 +297,7 @@ def verlaufsplan():
 
 
 @app.route("/modulauswahl")
-#@login_required
+@login_required
 def modulauswahl():
     user_matrikelnummer = session["matrikelnummer"]
     user_passwort_hash = session["passwort"]
@@ -471,26 +488,41 @@ def modulauswahl():
                                    semesterwochenstunden = semesterwochenstunden)
 
         # TODO Voraussetzungen prüfen
-        """
+        id_list_temp_vor_sem = dbase.get_vorherige_belegte_modul_ids(user_id, current_semester)
         id_list_voraussetzungen = []
         kurs_voraussetzung = dbase.get_modul_voraussetzungen(str(idModule))
-        print(kurs_voraussetzung)
         for v in kurs_voraussetzung:
             if str(idModule) == str(v[2]):
+                print(str(v[1]))
                 id_list_voraussetzungen.append(str(v[1]))
                 for i in id_list_voraussetzungen:
-                    # Bis hier sollte es funktionieren
-                    #TODO Datenbankabfrage für id_list_temp_vor_sem
-
                     for t in id_list_temp_vor_sem:
+                        print(t[0])
+                        if i == t[0]:
+                            break
+                else:
+                #  TODO Flash für die Warnung
+                    print("Kurs hat eine Voraussetzung mit der ID: " + str(i) + ", welche du noch nicht abgeschlossen hast")
+
+        """
+        #Voraussetzung Nachher
+        x = False
+        id_list_voraussetzungen_nach = []
+        for v in kurs_voraussetzung:
+            if str(idModule) == str(v[1]):
+                id_list_voraussetzungen_nach.append(str(v[2]))
+                for i in id_list_voraussetzungen_nach:
+                    id_list_temp_vor_sem_nach = dbase.get_nachfolgende_belegte_modul_ids(user_id, current_semester)
+                    for t in id_list_temp_vor_sem_nach:
+                        print(t)
                         if i == t:
                             break
                     else:
-                        #TODO Flash für die Warnung
-                        print("Kurs hat eine Voraussetzung mit der ID: " + str(i) +
-                                  ", welche du noch nicht abgeschlossen hast")
+                        if x == False:
+                            #TODO Flash für die Warnung
+                            print("Kurs ist Voraussetzung für den Kurs mit Kurs-ID: " + str(i) + ", welches du in einem späteren Semester gewählt hast.")
+                            x = True
         """
-
 
         elementFromDB = dbase.get_single_module(idModule)
 
@@ -562,24 +594,85 @@ def modulauswahl():
         print(element)
         print(str(sem.courses))
 
-        #Modul in benutzer_modul hinzufügen
+        # Modul in benutzer_modul hinzufügen
         dbase.insert_benutzer_modul(user_id, idModule, current_semester)
 
+        if user_wahlvertiefung_ID == 1 or user_wahlvertiefung_ID == 3:
+            return render_template("modulauswahl.html",
+                                   module1=module1,
+                                   pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
+                                   pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
+                                   pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
+                                   grundlagenpraktikum=grundlagenpraktikum,
+                                   grundlagenpraktikum_nicht_empfohlen=grundlagenpraktikum_nicht_empfohlen,
+                                   zweites_Grundlagenmodul=zweites_Grundlagenmodul,
+                                   zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
+                                   empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
+                                   nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
+                                   andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
+                                   andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
+                                   gewaehlte_module_name=gewaehlte_module_name,
+                                   benutzer_modul_ids=benutzer_modul_ids,
+                                   user_pflicht_lp_ist=user_pflicht_lp_ist,
+                                   user_pflicht_lp_soll=user_pflicht_lp_soll,
+                                   user_grundlagenpraktikum_lp_ist=user_grundlagenpraktikum_lp_ist,
+                                   user_grundlagenpraktikum_lp_soll=user_grundlagenpraktikum_lp_soll,
+                                   user_weitere_einfuehrung_LP_ist=user_weitere_einfuehrung_LP_ist,
+                                   user_weitere_einfuehrung_LP_soll=user_weitere_einfuehrung_LP_soll,
+                                   user_wahlpflicht_LP_ist=user_wahlpflicht_LP_ist,
+                                   user_wahlpflicht_andere_LP_ist=user_wahlpflicht_andere_LP_ist,
+                                   user_min_wahlpflicht_LP=user_min_wahlpflicht_LP,
+                                   user_max_wahlpflicht_LP=user_max_wahlpflicht_LP,
+                                   user_min_wahlpflicht_andere_LP=user_min_wahlpflicht_andere_LP,
+                                   user_max_wahlpflicht_andere_LP=user_max_wahlpflicht_andere_LP,
+                                   lp_gesamt=lp_gesamt,
+                                   semesterwochenstunden=semesterwochenstunden
+                                   )
+        elif user_wahlvertiefung_ID == 2 or user_wahlvertiefung_ID == 4:
+            return render_template("modulauswahl.html",
+                                   module1=module1,
+                                   pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
+                                   pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
+                                   pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
+                                   zweites_Grundlagenmodul=zweites_Grundlagenmodul,
+                                   zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
+                                   empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
+                                   nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
+                                   andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
+                                   andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
+                                   gewaehlte_module_name=gewaehlte_module_name,
+                                   benutzer_modul_ids=benutzer_modul_ids,
+                                   user_pflicht_lp_ist=user_pflicht_lp_ist,
+                                   user_pflicht_lp_soll=user_pflicht_lp_soll,
+                                   user_weitere_einfuehrung_LP_ist=user_weitere_einfuehrung_LP_ist,
+                                   user_weitere_einfuehrung_LP_soll=user_weitere_einfuehrung_LP_soll,
+                                   user_wahlpflicht_LP_ist=user_wahlpflicht_LP_ist,
+                                   user_wahlpflicht_andere_LP_ist=user_wahlpflicht_andere_LP_ist,
+                                   user_min_wahlpflicht_LP=user_min_wahlpflicht_LP,
+                                   user_max_wahlpflicht_LP=user_max_wahlpflicht_LP,
+                                   user_min_wahlpflicht_andere_LP=user_min_wahlpflicht_andere_LP,
+                                   user_max_wahlpflicht_andere_LP=user_max_wahlpflicht_andere_LP,
+                                   lp_gesamt=lp_gesamt,
+                                   semesterwochenstunden=semesterwochenstunden
+                                   )
+
+
+    if user_wahlvertiefung_ID == 1 or user_wahlvertiefung_ID == 3:
         return render_template("modulauswahl.html",
-                           module1=module1,
-                           pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
-                           pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
-                           pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
-                           grundlagenpraktikum=grundlagenpraktikum,
-                           grundlagenpraktikum_nicht_empfohlen=grundlagenpraktikum_nicht_empfohlen,
-                           zweites_Grundlagenmodul=zweites_Grundlagenmodul,
-                           zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
-                           empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
-                           nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
-                           andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
-                           andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
-                           gewaehlte_module_name = gewaehlte_module_name,
-                           benutzer_modul_ids = benutzer_modul_ids,
+                               module1=module1,
+                               pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
+                               pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
+                               pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
+                               grundlagenpraktikum=grundlagenpraktikum,
+                               grundlagenpraktikum_nicht_empfohlen=grundlagenpraktikum_nicht_empfohlen,
+                               zweites_Grundlagenmodul=zweites_Grundlagenmodul,
+                               zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
+                               empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
+                               nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
+                               andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
+                               andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
+                               gewaehlte_module_name=gewaehlte_module_name,
+                               benutzer_modul_ids=benutzer_modul_ids,
                                user_pflicht_lp_ist=user_pflicht_lp_ist,
                                user_pflicht_lp_soll=user_pflicht_lp_soll,
                                user_grundlagenpraktikum_lp_ist=user_grundlagenpraktikum_lp_ist,
@@ -592,31 +685,25 @@ def modulauswahl():
                                user_max_wahlpflicht_LP=user_max_wahlpflicht_LP,
                                user_min_wahlpflicht_andere_LP=user_min_wahlpflicht_andere_LP,
                                user_max_wahlpflicht_andere_LP=user_max_wahlpflicht_andere_LP,
-                               lp_gesamt = lp_gesamt,
+                               lp_gesamt=lp_gesamt,
                                semesterwochenstunden=semesterwochenstunden
                                )
-
-
-
-    return render_template("modulauswahl.html",
-                           module1=module1,
-                           pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
-                           pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
-                           pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
-                           grundlagenpraktikum=grundlagenpraktikum,
-                           grundlagenpraktikum_nicht_empfohlen=grundlagenpraktikum_nicht_empfohlen,
-                           zweites_Grundlagenmodul=zweites_Grundlagenmodul,
-                           zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
-                           empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
-                           nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
-                           andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
-                           andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
-                           gewaehlte_module_name = gewaehlte_module_name,
-                           benutzer_modul_ids = benutzer_modul_ids,
+    elif user_wahlvertiefung_ID == 2 or user_wahlvertiefung_ID == 4:
+        return render_template("modulauswahl.html",
+                               module1=module1,
+                               pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
+                               pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
+                               pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
+                               zweites_Grundlagenmodul=zweites_Grundlagenmodul,
+                               zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
+                               empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
+                               nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
+                               andere_empfohlene_wahlpflichtkurse=andere_empfohlene_wahlpflichtkurse,
+                               andere_nichtempfohlene_wahlpflichtkurse=andere_nichtempfohlene_wahlpflichtkurse,
+                               gewaehlte_module_name=gewaehlte_module_name,
+                               benutzer_modul_ids=benutzer_modul_ids,
                                user_pflicht_lp_ist=user_pflicht_lp_ist,
                                user_pflicht_lp_soll=user_pflicht_lp_soll,
-                               user_grundlagenpraktikum_lp_ist=user_grundlagenpraktikum_lp_ist,
-                               user_grundlagenpraktikum_lp_soll=user_grundlagenpraktikum_lp_soll,
                                user_weitere_einfuehrung_LP_ist=user_weitere_einfuehrung_LP_ist,
                                user_weitere_einfuehrung_LP_soll=user_weitere_einfuehrung_LP_soll,
                                user_wahlpflicht_LP_ist=user_wahlpflicht_LP_ist,

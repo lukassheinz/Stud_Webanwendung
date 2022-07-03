@@ -749,3 +749,8 @@ class Database:
         sql_query = "select modul_ID from benutzer_modul where benutzer_ID = %s and semester < %s"
         parameter = (benutzer_id, current_semester)
         return self.engine.execute(sql_query,parameter).fetchall()
+
+    def get_nachfolgende_belegte_modul_ids(self, benutzer_id, current_semester):
+        sql_query = "select modul_ID from benutzer_modul where benutzer_ID = %s and semester > %s"
+        parameter = (benutzer_id, current_semester)
+        return self.engine.execute(sql_query,parameter).fetchall()

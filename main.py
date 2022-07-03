@@ -14,24 +14,42 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:waterslide@localhost/Studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
 
 
 app.config['SECRET_KEY'] = 'xxxxxxxxxxxxxxxxx!'
-admin = Admin(app)
+admin = Admin(app, template_mode='bootstrap3', name='Verwaltung')
 bootstrap = Bootstrap(app)
 
 
 class SecureModelView(ModelView):
+    # can_delete = False  # disable model deletion
+    page_size = 100  # the number of entries to display on the list view
+    #create_modal = True
+    #edit_modal = True
+
+    form_choices = {
+        ####### Für Module
+        'pflicht_wahlpflicht': [('Pflicht', 'Pflicht'), ('Wahlpflicht', 'Wahlpflicht'), ('Einfuehrung', 'Einfuehrung'),
+                                ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
+        'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
+        'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
+                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
+        'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                              ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'immatrikulationssemester': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester')]
+    }
+
     def is_accessible(self):
         if "logged_in" in session:
             return True
         else:
             abort(403)
-
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -74,7 +92,7 @@ class prof(UserMixin, db.Model):
 
 class ProfLoginForm(FlaskForm):
     username = StringField('ID', validators=[InputRequired(), Length(min=4, max=15)])
-    password = PasswordField('Passwort', validators=[InputRequired(), Length(min=8, max=80)])
+    password = PasswordField('Passwort', validators=[InputRequired(), Length(max=80)])
 
 class Studienverlaufsplan:
 
@@ -222,7 +240,7 @@ def login():
                 session["matrikelnummer"] = request.form["username"]
                 session["passwort"] = user.passwort
                 login_user(user, remember=form.remember.data)
-                return redirect(url_for('index'))
+                return redirect(url_for('modulauswahl'))
 
         return '<h1>Falsche Zugangsdaten</h1>'
 
@@ -279,7 +297,7 @@ def verlaufsplan():
 
 
 @app.route("/modulauswahl")
-#@login_required
+@login_required
 def modulauswahl():
     user_matrikelnummer = session["matrikelnummer"]
     user_passwort_hash = session["passwort"]

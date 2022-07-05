@@ -262,7 +262,6 @@ class Database:
         return self.engine.execute(
             'SELECT m.ID AS ID, m.nummer AS nummer, m.modultitel AS modultitel, v.modulvoraussetzung_id as modulvoraussetzung, x.nummer as nummer, x.modultitel as Modultitel_Voraussetzungsmodul FROM Modul m Join Voraussetzung_Modul v on m.id = v.modul_id Join Modul x on v.modulvoraussetzung_id = x.id').fetchall()
 
-
     ### LEISTUNGSPUNKTE ###
 
     # LP-Summe der Grund_Pflichtmodule ohne Vertiefung
@@ -275,7 +274,6 @@ class Database:
         """
         parameter = (benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
-
 
     # LP-Summe der Grund_Pflichtmodule ohne Vertiefung
     def get_Summe_Pflichtmodule(self, benutzer_id):
@@ -302,6 +300,24 @@ class Database:
                 SELECT modul_ID
 		        FROM benutzer_modul
                 WHERE benutzer_ID = %s AND semester = %s)
+        """
+        parameter = (id, benutzer_id, semester)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+    # LP-Summe der Pflichtmodule eines Benutzers mit gewählter Vertiefung Vor
+    def get_Summe_Pflicht_Vertiefung_Vor(self, id, benutzer_id, semester):
+        sql_query = """
+        SELECT IFNULL(SUM(leistungspunkte), 0)
+        FROM modul m
+        WHERE (m.pflicht_wahlpflicht = "Pflicht" OR m.ID IN (
+            SELECT modul_ID
+    	    FROM vertiefung_modul vm
+    	    JOIN benutzer b ON b.wahlvertiefung_ID = vm.vertiefung_ID
+		    WHERE b.ID = %s AND zuordnung = "Pflicht_in")) 
+        AND m.ID IN (
+                SELECT modul_ID
+		        FROM benutzer_modul                    
+		        WHERE benutzer_ID = %s AND semester < %s)
         """
         parameter = (id, benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
@@ -337,6 +353,19 @@ class Database:
         parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
 
+    # LP-Summe der Wahlpflichtmodule in der gewählten Vertiefung eines Benutzers Vorherige Semester
+    def get_Summe_WPF_Vertiefung_Vor(self, benutzer_id, semester):
+        sql_query = """
+        SELECT IFNULL(SUM(leistungspunkte), 0)
+        FROM modul m
+        JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+        JOIN benutzer b ON b.ID = bm.benutzer_ID
+        JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "gehoert_zu" AND bm.semester < %s;
+        """
+        parameter = (benutzer_id, semester)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
     # LP-Summe der Wahlpflichtmodule in der gewählten Vertiefung eines Benutzers Gesamt
     def get_Summe_WPF_Vertiefung_Gesamt(self, benutzer_id):
         sql_query = """
@@ -359,6 +388,19 @@ class Database:
         JOIN benutzer b ON b.ID = bm.benutzer_ID
         JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
         AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "erlaubt_in" AND semester= %s;
+        """
+        parameter = (benutzer_id, semester)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+    # LP-Summe der Wahlpflichtmodule der anderen Vertiefungen eines Benutzers Vorherige Semester
+    def get_Summe_WPF_andere_Vor(self, benutzer_id, semester):
+        sql_query = """
+        SELECT IFNULL(SUM(leistungspunkte), 0)
+        FROM modul m
+        JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+        JOIN benutzer b ON b.ID = bm.benutzer_ID
+        JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "erlaubt_in" AND semester < %s;
         """
         parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
@@ -389,6 +431,19 @@ class Database:
         parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
 
+    # LP-Summe der Grundlagenpraktika eines Benutzers vorherige Semester
+    def get_Summe_Grundlagenpraktika_Vor(self, benutzer_id, semester):
+        sql_query = """
+        SELECT IFNULL(SUM(leistungspunkte), 0)
+        FROM modul m
+        JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+        JOIN benutzer b ON b.ID = bm.benutzer_ID
+        JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Grundlagenpraktikum" AND vm.zuordnung = "erlaubt_in" AND semester < %s;
+        """
+        parameter = (benutzer_id, semester)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
     # LP-Summe der Grundlagenpraktika eines Benutzers
     def get_Summe_Grundlagenpraktika_Gesamt(self, benutzer_id):
         sql_query = """
@@ -411,6 +466,19 @@ class Database:
         JOIN benutzer b ON b.ID = bm.benutzer_ID
         JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
         AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Einfuehrung" AND vm.zuordnung = "erlaubt_in" AND semester = %s;
+        """
+        parameter = (benutzer_id, semester)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+    # LP-Summe weitere Einfuehrungsmodule eines Benutzers Vorherige Semester
+    def get_Summe_weitere_Einfuehrung_Vor(self, benutzer_id, semester):
+        sql_query = """
+        SELECT IFNULL(SUM(leistungspunkte), 0)
+        FROM modul m
+        JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+        JOIN benutzer b ON b.ID = bm.benutzer_ID
+        JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Einfuehrung" AND vm.zuordnung = "erlaubt_in" AND semester < %s;
         """
         parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
@@ -449,6 +517,7 @@ class Database:
         return self.engine.execute(sql_query, parameter).fetchall()
 
         # SWS-Summe der Wahlpflichtmodule in der gewählten Vertiefung eines Benutzers
+
     def get_Summe_WPF_Vertiefung_sws(self, benutzer_id, semester):
         sql_query = """
         SELECT IFNULL(SUM(semesterwochenstunden), 0)
@@ -462,6 +531,7 @@ class Database:
         return self.engine.execute(sql_query, parameter).fetchall()
 
         # SWS-Summe der Wahlpflichtmodule der anderen Vertiefungen eines Benutzers
+
     def get_Summe_WPF_andere_sws(self, benutzer_id, semester):
         sql_query = """
         SELECT IFNULL(SUM(semesterwochenstunden), 0)
@@ -499,7 +569,6 @@ class Database:
         """
         parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
-
 
     # Anzeige der Modulvoraussetzungen aller nicht belegten Module eines Benutzers
     def get_Voraussetzung_nicht_belegter_Module(self, benutzer_id):
@@ -569,7 +638,8 @@ class Database:
         return self.engine.execute("select * from voraussetzung_modul where modul_ID = " + modul_id).fetchall()
 
     def get_modul_voraussetzungen_nach(self, modul_id):
-        return self.engine.execute("select * from voraussetzung_modul where modulvoraussetzung_ID = " + modul_id).fetchall()
+        return self.engine.execute(
+            "select * from voraussetzung_modul where modulvoraussetzung_ID = " + modul_id).fetchall()
 
     ### die vertiefungs-id angibt das Grundlagenmodul zur vertiefung
     def get_Einfuehrung_zu_Vertiefung(self, vertiefung_id):
@@ -796,7 +866,8 @@ class Database:
         return self.engine.execute(sql_query, parameter).fetchall()
 
     # Ausgabe Grundlagenpraktikum der jeweiligen Vertiefung (in nicht empfohlenen Semester)
-    def get_Grundlagenpraktikum_zu_Vertiefung_nicht_empfohlen(self, start_semester, current_semester, vertiefung_id, benutzer_id):
+    def get_Grundlagenpraktikum_zu_Vertiefung_nicht_empfohlen(self, start_semester, current_semester, vertiefung_id,
+                                                              benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
@@ -833,12 +904,12 @@ class Database:
     def get_vorherige_belegte_modul_ids(self, benutzer_id, current_semester):
         sql_query = "select modul_ID from benutzer_modul where benutzer_ID = %s and semester < %s"
         parameter = (benutzer_id, current_semester)
-        return self.engine.execute(sql_query,parameter).fetchall()
+        return self.engine.execute(sql_query, parameter).fetchall()
 
     def get_nachfolgende_belegte_modul_ids(self, benutzer_id, current_semester):
         sql_query = "select modul_ID from benutzer_modul where benutzer_ID = %s and semester > %s"
         parameter = (benutzer_id, current_semester)
-        return self.engine.execute(sql_query,parameter).fetchall()
+        return self.engine.execute(sql_query, parameter).fetchall()
 
     def update_current_semester(self, user_id, new_current_semester):
         sql_query = """
@@ -846,4 +917,20 @@ class Database:
                     set current_semester = %s where ID = %s
                     """
         parameter = (new_current_semester, user_id)
-        return self.engine.execute(sql_query,parameter)
+        return self.engine.execute(sql_query, parameter)
+
+    def update_semester_anzahl(self, user_id, semester_anzahl):
+        sql_query = """
+                    update benutzer
+                    set semester_anzahl = %s where ID = %s
+                    """
+        parameter = (semester_anzahl, user_id)
+        return self.engine.execute(sql_query, parameter)
+
+    def delete_gewählte_module_in_semester(self, user_id, semester_anzahl):
+        sql_query = """
+                    delete from benutzer_modul
+                    where benutzer_ID = %s and semester = %s
+                    """
+        parameter = (user_id, semester_anzahl)
+        return self.engine.execute(sql_query, parameter)

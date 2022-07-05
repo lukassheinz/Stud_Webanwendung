@@ -38,10 +38,12 @@ $(document).ready(function (){
                 //selectedModules: my_arr.join(",")
             },
             success: function(response){
-                $( "body").load("modulauswahl")
+               // $( ".li").load("modulauswahl")
+                $("body").load("modulauswahl");
             },
             error: function(){
-                $( "body").load("modulauswahl")
+                $("body").load("modulauswahl");
+                //$( ".li").load("modulauswahl")
             }
         })
 
@@ -72,10 +74,12 @@ $(document).ready(function (){
                 //selectedModules: my_arr.join(",")
             },
             success: function(response){
-                $( "body").load("modulauswahl")
+                //$( ".li").load("modulauswahl")
+                $("body").load("modulauswahl");
             },
             error: function(){
-                $( "body").load("modulauswahl")
+                //$( ".li").load("modulauswahl")
+                $("body").load("modulauswahl");
             }
         })
 
@@ -112,11 +116,45 @@ $(document).ready(function (){
         })
     })
 
+    $(".add").click(function(){
+        $.ajax({
+            url: "/modulauswahl",
+            type: "get",
+            contentType: "application/json",
+            data: {
+                class: $(this).attr("class")
+            },
+            success: function(response){
+                $( "body").load("modulauswahl")
+            },
+            error: function(){
+                $( "body").load("modulauswahl")
+            }
+        })
+    })
+
+    $(".delete").click(function(){
+        $.ajax({
+            url: "/modulauswahl",
+            type: "get",
+            contentType: "application/json",
+            data: {
+                class: $(this).attr("class")
+            },
+            success: function(response){
+                $( "body").load("modulauswahl")
+            },
+            error: function(){
+                $( "body").load("modulauswahl")
+            }
+        })
+    })
+
 })
 
 function addSemester(){
-    let semesterListe = document.querySelector(".semester-liste")
-    let letztesSemester = document.querySelector(".semester-liste li:last-child")
+    let semesterListe = document.querySelector(".semester-container")
+    let letztesSemester = document.querySelector(".semester-container li:last-child")
     let letztesSemesterNr = letztesSemester.getAttribute("id")
     let newSemesterNr = parseInt(letztesSemesterNr) + 1;
     let entry = document.createElement("li")
@@ -127,8 +165,9 @@ function addSemester(){
 }
 
 function deleteLastSemester(){
-    let semesterListe = document.querySelector(".semester-liste")
-    let letztesSemester = document.querySelector(".semester-liste li:last-child")
+    let semesterListe = document.querySelector(".semester-container")
+    let letztesSemester = document.querySelector(".semester-container li:last-child")
+    semesterListe.removeChild(letztesSemester);
 }
 
 $(".semester-liste").on("click", "li", function(e){

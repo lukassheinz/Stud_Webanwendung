@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -312,7 +312,7 @@ def modulauswahl():
     elif user_start_semester == "Sommersemester":
         start_semester = 2
     current_semester = user[0][10]
-    print(current_semester)
+    semester_anzahl = user[0][11]
 
     if request.is_json:
         if (request.args.get("class") == "semester"):
@@ -320,7 +320,22 @@ def modulauswahl():
             current_semester = new_current_semester
             dbase.update_current_semester(user_id, new_current_semester)
             return "yes"
-    print("CURRENT_SEMESTER:", current_semester)
+        if (request.args.get("class") == "btn btn-primary add"):
+            semester_anzahl = semester_anzahl + 1
+            dbase.update_semester_anzahl(user_id, semester_anzahl)
+        if (request.args.get("class") == "btn btn-warning delete"):
+            if semester_anzahl > 6:
+                print("AOWID", semester_anzahl)
+                dbase.delete_gewählte_module_in_semester(user_id, semester_anzahl)
+                if semester_anzahl == current_semester:
+                    current_semester = current_semester - 1
+                semester_anzahl = semester_anzahl - 1
+                #dbase.delete_gewählte_module_in_semester(user_id, semester_anzahl)
+                dbase.update_semester_anzahl(user_id, semester_anzahl)
+                dbase.update_current_semester(user_id, current_semester)
+            else:
+                flash("Du solltest mindestens 6 Semester studieren.")
+                return redirect(request.url)
 
     temp = dbase.get_vertiefungen2(user_wahlvertiefung_ID)
 
@@ -328,15 +343,11 @@ def modulauswahl():
     sum_pflicht_vertiefung_lp = dbase.get_Summe_Pflicht_Vertiefung_Gesamt(user_wahlvertiefung_ID, user_id)
     user_pflicht_lp_soll = temp[0][3]
     user_pflicht_lp_ist = int(sum_pflicht_vertiefung_lp[0][0])
-    print("USER_PFLICHT_LP_IST", user_pflicht_lp_ist)
-    print("CURRENT_SEMESTER_AWDWA", current_semester)
 
     #Weitere Einführung Leistungspunkte
     sum_weitere_einfuherung_lp = dbase.get_Summe_weitere_Einfuehrung_Gesamt(user_id)
     user_weitere_einfuehrung_LP_soll = temp[0][5]
     user_weitere_einfuehrung_LP_ist = int(sum_weitere_einfuherung_lp[0][0])
-    print("USER_WEITERE_EINFÜHRUNG_LP_IST", user_weitere_einfuehrung_LP_ist)
-    print("USER_WEITERE_EINFÜHRUNG_LP_SOLL", user_weitere_einfuehrung_LP_soll)
 
     #Grundlagenpraktikum Leistungspunkte
     sum_grundlagenpraktika_lp = dbase.get_Summe_Grundlagenpraktika_Gesamt(user_id)
@@ -362,8 +373,14 @@ def modulauswahl():
                             int(dbase.get_Summe_Grundlagenpraktika(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_weitere_Einfuehrung(user_id, current_semester)[0][0])
 
+    #LP-Gesamt in den vorherigen Semestern (Für Bachelorarbeit relevant)
+    lp_gesamt_vor_sem = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_wahlvertiefung_ID, user_id, current_semester)[0][0]) + \
+                            int(dbase.get_Summe_WPF_Vertiefung_Vor(user_id, current_semester)[0][0]) + \
+                            int(dbase.get_Summe_WPF_andere_Vor(user_id, current_semester)[0][0]) +\
+                            int(dbase.get_Summe_Grundlagenpraktika_Vor(user_id, current_semester)[0][0]) + \
+                            int(dbase.get_Summe_weitere_Einfuehrung_Vor(user_id, current_semester)[0][0])
+
     lp_gesamt_alle_semester = int(dbase.get_Gesamtsumme_LP(user_id)[0][0])
-    print("LP GESAMT ALLE SEMESTER: ", lp_gesamt_alle_semester)
 
     #Semesterwochenstunden
     semesterwochenstunden = int(dbase.get_Summe_Pflicht_Vertiefung_sws(user_wahlvertiefung_ID, user_id, current_semester)[0][0]) + \
@@ -372,8 +389,7 @@ def modulauswahl():
                             int(dbase.get_Summe_Grundlagenpraktika_sws(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_weitere_Einfuehrung_sws(user_id, current_semester)[0][0])
 
-    stud = Studienverlaufsplan(1, user_wahlvertiefung_ID, user_wahlvertiefung2_ID)
-    sem = Semester()
+
     if start_semester == 1:
         current_sem = 'Sommersemester' if current_semester % 2 == 0 else 'Wintersemester'
     elif start_semester == 2:
@@ -382,7 +398,7 @@ def modulauswahl():
     #Pflichtmodule
     if user_pflicht_lp_ist != user_pflicht_lp_soll:
         module1 = dbase.get_module_empfohlen_pflicht(start_semester, current_semester, "Pflicht", user_id)
-        if lp_gesamt_alle_semester < 120:
+        if lp_gesamt_vor_sem < 120:
             for i in module1:
                 if i[2] == "Bachelorarbeit":
                     module1.remove(i)
@@ -462,8 +478,6 @@ def modulauswahl():
     temp_zip = zip(gewaehlte_module_name, benutzer_modul_ids)
     temp_list = list(temp_zip)
 
-    #TODO "Weiter"-Button soll current_semester +1 machen (Variable current_semester auf Value der Semesterliste setzen)
-
     if request.is_json:
         idModule = request.args.get("value")
         id_in_benutzer_modul = request.args.get("id")
@@ -528,7 +542,8 @@ def modulauswahl():
                                    temp_list = temp_list,
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
-                                   user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe)
+                                   user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
+                                   semester_anzahl = semester_anzahl)
 
 
 
@@ -614,14 +629,6 @@ def modulauswahl():
                         return redirect(request.url)
 
 
-        element = Veranstaltung(str(elementFromDB[0][0]), str(elementFromDB[0][1]), str(elementFromDB[0][2]),
-                                str(elementFromDB[0][3]), str(elementFromDB[0][4]),
-                                str(elementFromDB[0][5]), str(elementFromDB[0][6]), str(elementFromDB[0][7]),
-                                str(elementFromDB[0][8]))
-        sem.add_course(element)
-        print(element)
-        print(str(sem.courses))
-
         # Modul in benutzer_modul hinzufügen
         dbase.insert_benutzer_modul(user_id, idModule, current_semester)
 
@@ -656,7 +663,8 @@ def modulauswahl():
                                    temp_list=temp_list,
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
-                                   user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe
+                                   user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
+                                   semester_anzahl = semester_anzahl
                                    )
         elif user_wahlvertiefung_ID == 2 or user_wahlvertiefung_ID == 4:
             return render_template("modulauswahl.html",
@@ -685,7 +693,8 @@ def modulauswahl():
                                    temp_list=temp_list,
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
-                                   user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe
+                                   user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
+                                   semester_anzahl = semester_anzahl
                                    )
 
 
@@ -720,7 +729,8 @@ def modulauswahl():
                                temp_list=temp_list,
                                lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                current_semester = current_semester,
-                               user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe
+                               user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
+                               semester_anzahl = semester_anzahl
                                )
     elif user_wahlvertiefung_ID == 2 or user_wahlvertiefung_ID == 4:
         return render_template("modulauswahl.html",
@@ -749,7 +759,8 @@ def modulauswahl():
                                temp_list = temp_list,
                                lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                current_semester = current_semester,
-                               user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe
+                               user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
+                               semester_anzahl = semester_anzahl
                                )
 
 @app.route('/logout')

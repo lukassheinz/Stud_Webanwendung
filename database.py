@@ -934,3 +934,13 @@ class Database:
                     """
         parameter = (user_id, semester_anzahl)
         return self.engine.execute(sql_query, parameter)
+
+    def get_ausgewählte_module_infos(self, benutzer_ID, semester):
+        sql_query = """
+                    SELECT *
+                    FROM modul m
+                    JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+                    WHERE benutzer_ID = %s AND semester = %s
+                    """
+        parameter = (benutzer_ID, semester)
+        return self.engine.execute(sql_query, parameter)

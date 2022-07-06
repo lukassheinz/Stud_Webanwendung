@@ -511,6 +511,12 @@ def modulauswahl():
         if(request.args.get("class") == "semester-list"):
             print("class", request.args.get("class"))
 
+            # prüfen, ob Modul abgeschlossen ist. Falls ja, dann ist Löschen nicht mehr möglich.
+            temp_modul = dbase.get_modul_from_benutzer_modul(user_id, idModule)
+            if temp_modul[0][1] == "abgeschlossen":
+                flash("Das Modul ist bereits abgeschlossen und kann nicht entfernt werden.")
+                return redirect(request.url)
+
             # prüfen, ob löschung möglich ist (voraussetzungen aus nachfolgenden semestern prüfen)
             # Voraussetzungen nachher prüfen
             id_list_nachfolgende_semester = dbase.get_nachfolgende_belegte_modul_ids(user_id, current_semester)

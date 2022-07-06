@@ -954,3 +954,10 @@ class Database:
                     """
         parameter = (benutzer_ID, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
+
+    def get_modul_from_benutzer_modul(self, user_id, modul_id):
+        sql_query = """
+                    SELECT * FROM benutzer_modul WHERE benutzer_ID = %s and modul_ID = %s
+                    """
+        parameter = (user_id, modul_id)
+        return self.engine.execute(sql_query, parameter).fetchall()

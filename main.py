@@ -225,7 +225,7 @@ class RegisterForm(FlaskForm):
     erste_Vertiefung = SelectField('Vertiefung 1', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
     zweite_Vertiefung = SelectField('Vertiefung 2', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
 
-@app.route('/')
+@app.route('/', methods = ["GET", "POST"])
 def index():
     return render_template('index.html')
 
@@ -282,22 +282,45 @@ admin.add_view((SecureModelView( benutzer, db.session)))
 
 
 
-@app.route('/verlaufsplan')
+@app.route('/verlaufsplan', methods=["GET", "POST"])
+@login_required
 def verlaufsplan():
-    """
-    ergebnis = dbase.get_vertiefungen()         #Beispiel - nach dbase. alle Einträge der database.py einsetzbar
-    anzahl = 0
-    for erg in ergebnis:
-        anzahl = anzahl + 1
-        print(erg)
+    user_matrikelnummer = session["matrikelnummer"]
+    user_passwort_hash = session["passwort"]
+    user = dbase.get_user(user_matrikelnummer, user_passwort_hash)
+    user_id = session["user_ID"] = user[0][0]
+    semester_anzahl = user[0][11]
+    semester_modul_liste = []
 
-    return render_template('index2.html', len=anzahl, ergebnis=ergebnis)  # , name=current_user.username
-    """
-    return render_template("verlaufsplan.html")
+    if request.is_json:
+        # von belegt auf abgeschlossen ändern
+        if request.args.get("value") and "belegt" in request.args.get("class"):
+            temp_module_id = request.args.get("value")
+            semester_von_modul = request.args.get("semester")
+            dbase.update_benutzer_modul(user_id, temp_module_id, semester_von_modul)
+
+        # von abgeschlossen auf belegt ändern
+        elif request.args.get("value") and "abgeschlossen" in request.args.get("class"):
+            temp_module_id = request.args.get("value")
+            semester_von_modul = request.args.get("semester")
+            dbase.update_benutzer_modul_belegt(user_id, temp_module_id, semester_von_modul)
+
+    #Gewählte Module bekommen
+    for i in range(1, semester_anzahl + 1):
+        semester_modul_liste.append(dbase.get_gewaehlte_module(user_id, i))
+    module_for_jeweiliges_semester = []
+    # Get gewählte Module
+    for i in range(1, semester_anzahl + 1):
+        module_for_jeweiliges_semester.append(dbase.get_ausgewählte_module_infos(user_id, i))
+
+    return render_template("verlaufsplan.html",
+                           semester_anzahl = semester_anzahl,
+                           semester_modul_liste = semester_modul_liste,
+                           module_for_jeweiliges_semester = module_for_jeweiliges_semester)
 
 
 
-@app.route("/modulauswahl")
+@app.route("/modulauswahl", methods=["GET"])
 @login_required
 def modulauswahl():
     user_matrikelnummer = session["matrikelnummer"]

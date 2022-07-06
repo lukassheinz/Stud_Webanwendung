@@ -203,8 +203,18 @@ class Database:
             SET semester = %s, status = 'abgeschlossen' 
             WHERE benutzer_id = %s and modul_id = %s
             """
-        parameter = (benutzer_id, modul_id, semester)
-        return self.engine.execute(sql_query, parameter).fetchall()
+        parameter = (semester,benutzer_id, modul_id)
+        return self.engine.execute(sql_query, parameter)
+
+    # Änderung des Status auf 'belegt' für ein Modul eines Benutzers
+    def update_benutzer_modul_belegt(self, benutzer_id, modul_id, semester):
+        sql_query = """
+            UPDATE benutzer_modul 
+            SET semester = %s, status = 'belegt' 
+            WHERE benutzer_id = %s and modul_id = %s
+            """
+        parameter = (semester, benutzer_id, modul_id)
+        return self.engine.execute(sql_query, parameter)
 
     # Zuordnung eines Moduls zu einer Vertiefung
     def insert_vertiefung_modul(self, vertiefung_id, modul_id, zuordnung):
@@ -934,3 +944,13 @@ class Database:
                     """
         parameter = (user_id, semester_anzahl)
         return self.engine.execute(sql_query, parameter)
+
+    def get_ausgewählte_module_infos(self, benutzer_ID, semester):
+        sql_query = """
+                    SELECT *
+                    FROM modul m
+                    JOIN benutzer_modul bm ON bm.modul_ID = m.ID
+                    WHERE benutzer_ID = %s AND semester = %s
+                    """
+        parameter = (benutzer_ID, semester)
+        return self.engine.execute(sql_query, parameter).fetchall()

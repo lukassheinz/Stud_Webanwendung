@@ -1,4 +1,20 @@
 $(document).ready(function (){
+    /*
+    $.ajax({
+        type: "GET",
+        url: "modulauswahl",
+        contentType: "application/json",
+        data: {
+            initializeCurrentSemester : 1
+        },
+        success:  function(response){
+                $( "body").load("modulauswahl")
+            },
+            error: function(){
+                $( "body").load("modulauswahl")
+                alert("AKWJDN")
+            }
+    })*/
 
     $(".li").click(function(){
 /*
@@ -22,11 +38,12 @@ $(document).ready(function (){
                 //selectedModules: my_arr.join(",")
             },
             success: function(response){
-
-                $( "body").load("modulauswahl")
+               // $( ".li").load("modulauswahl")
+                $("body").load("modulauswahl");
             },
             error: function(){
-                alert("Duplikat")
+                $("body").load("modulauswahl");
+                //$( ".li").load("modulauswahl")
             }
         })
 
@@ -57,16 +74,17 @@ $(document).ready(function (){
                 //selectedModules: my_arr.join(",")
             },
             success: function(response){
-                $( "body").load("modulauswahl")
+                //$( ".li").load("modulauswahl")
+                $("body").load("modulauswahl");
             },
             error: function(){
-                alert("Duplikat")
+                //$( ".li").load("modulauswahl")
+                $("body").load("modulauswahl");
             }
         })
 
 
     })
-
 
     $(".weiterbutton").click(function(){
         $.ajax({
@@ -80,4 +98,79 @@ $(document).ready(function (){
 
     })
 
+    $(".semester").click(function(){
+        $.ajax({
+            url:"/modulauswahl",
+            type: "get",
+            contentType: "application/json",
+            data:{
+                class: $(this).attr("class"),
+                id: $(this).attr("id"),
+            },
+            success: function(response){
+                $( "body").load("modulauswahl")
+            },
+            error: function(){
+                $( "body").load("modulauswahl")
+            }
+        })
+    })
+
+    $(".add").click(function(){
+        $.ajax({
+            url: "/modulauswahl",
+            type: "get",
+            contentType: "application/json",
+            data: {
+                class: $(this).attr("class")
+            },
+            success: function(response){
+                $( "body").load("modulauswahl")
+            },
+            error: function(){
+                $( "body").load("modulauswahl")
+            }
+        })
+    })
+
+    $(".delete").click(function(){
+        $.ajax({
+            url: "/modulauswahl",
+            type: "get",
+            contentType: "application/json",
+            data: {
+                class: $(this).attr("class")
+            },
+            success: function(response){
+                $( "body").load("modulauswahl")
+            },
+            error: function(){
+                $( "body").load("modulauswahl")
+            }
+        })
+    })
+
+})
+
+function addSemester(){
+    let semesterListe = document.querySelector(".semester-container")
+    let letztesSemester = document.querySelector(".semester-container li:last-child")
+    let letztesSemesterNr = letztesSemester.getAttribute("id")
+    let newSemesterNr = parseInt(letztesSemesterNr) + 1;
+    let entry = document.createElement("li")
+    entry.setAttribute("class", "semester")
+    entry.textContent = newSemesterNr + ". Semester"
+    entry.setAttribute("id", newSemesterNr)
+    semesterListe.appendChild(entry)
+}
+
+function deleteLastSemester(){
+    let semesterListe = document.querySelector(".semester-container")
+    let letztesSemester = document.querySelector(".semester-container li:last-child")
+    semesterListe.removeChild(letztesSemester);
+}
+
+$(".semester-liste").on("click", "li", function(e){
+    $(this).parent().find("li.active").removeClass("active");
+    $(this).addClass("active");
 })

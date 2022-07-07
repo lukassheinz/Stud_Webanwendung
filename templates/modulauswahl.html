@@ -1,123 +1,328 @@
+{% extends "base_modulauswahl.html" %}
 
+{% block title %}
+Modulauswahl
+{% endblock %}
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <link rel="stylesheet" href='/static/css/jquery.steps.css' />
-    <link rel="stylesheet" href='/static/css/bootstrap.min.css' />
-    <link rel="stylesheet" href='/static/css/index.css' />
-    <!-- <link rel="stylesheet" href='/static/css/drag.css' /> -->
-
-    <script rel="stylesheet" src='/static/js/jquery.min.js'></script>
-    <script rel="stylesheet" src='/static/js/jquery.steps.min.js'></script>
-
+{% block head %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <script src='/static/js/jquery.min.js'></script>
+    <script src='/static/js/jquery.steps.min.js'></script>
     <script src ="/static/js/modulauswahl.js"></script>
-    <!--<script rel="stylesheet" src='/static/js/drag'></script>-->
+    <style>
+
+        .main-container{
+            display: flex;
+            flex-direction: row-reverse;
+        }
+
+        .semester-container{
+            padding: 0;
+            margin-left: 5px;
+            margin-bottom: 15px;
+            text-align: -moz-center;
+            list-style: none;
+            display: flex;
+            -webkit-flex-wrap: wrap;
+            flex-wrap: wrap;
+        }
+
+        .semester{
+            color: #030385;
+            padding: 10px;
+            margin: 5px;
+            display: flex;
+        }
+
+        .semester.active{
+            color: white;
+            padding: 10px;
+            margin: 5px;
+            display: flex;
+            background: #030385;
+            border-radius: 5px;
+        }
+
+        .veranstaltungen{
+            height: 800px;
+            width: 750px;
+            float: right;
+            overflow-y: auto;
+            border: solid #030385 4px;
+            border-radius: 2px;
+            margin-top: 10px;
+            margin-right: 15px;
+        }
+
+        .semester-und-gewählte-module{
+            float: left;
+            min-height: 600px;
+            min-width: 200px;
+            width: auto;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: auto;
+        }
 
 
+        #belegte-module {
+            margin: 75px 200px 25px;
+            border: solid #030385 4px;
+            text-align: -moz-center;
+            min-width: 200px;
+        }
 
-    <title>Modulauswahl</title>
-</head>
+        .Zähler{
+            margin: 0px 200px;
+            border: solid #030385 4px;
+            text-align: -moz-center;
+            min-width: 200px;
+        }
 
-<body>
+        .belegte-module-container{
+            border-width: 5px;
+            border-color: #0a53be;
+        }
 
-<ul style="list-style-type:none;">
-    empfohlene Pflichtmodule
-    {% for item in module1 %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    nicht empfohlene Pflichtmodule
-    {% for item in pflichtkurse_nicht_empfohlen %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    empfohlene Pflichtmodule aus der gewählten Vertiefung
-    {% for item in pflichtkurse_vertiefung_empfohlen %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    nicht empfohlene Pflichtkurse aus der gewählten Vertiefung
-    {% for item in pflichtkurse_vertiefung_nicht_empfohlen %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    {% if grundlagenpraktikum %}
-    empfohlenes Grundlagenpraktikum
-    {% for item in grundlagenpraktikum %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-    {% endif %}
-</ul>
-<ul style="list-style-type:none;">
-    {% if grundlagenpraktikum_nicht_empfohlen %}
-    nicht empfohlenes Grundlagenpraktikum
-    {% for item in grundlagenpraktikum_nicht_empfohlen %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-    {% endif %}
-</ul>
-<ul style="list-style-type:none;">
-    empfohlenes zweites Grundlagenmodul
-    {% for item in zweites_Grundlagenmodul %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    nicht empfohlenes zweites Grundlagenmodul
-    {% for item in zweites_Grundlagenmodul_nicht_empfohlen %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    empfohlene Wahlpflichtkurse
-    {% for item in empfohlene_wahlpflichtkurse %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    nicht empfohlene Wahlpflichtkurse
-    {% for item in nichtempfohlene_wahlpflichtkurse %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    empfohlene Wahlpflichkturse aus anderen Vertiefungen
-    {% for item in andere_empfohlene_wahlpflichtkurse %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
-<ul style="list-style-type:none;">
-    nicht empfohlene Wahlpfichtkurse aus anderen Vertiefungen
-    {% for item in andere_nichtempfohlene_wahlpflichtkurse %}
-        <li class = li value = {{item[0]}}>{{item}}</li>
-    {% endfor %}
-</ul>
+        ul.list-group.list-group-striped li:nth-of-type(odd){
+            background: whitesmoke;
+        }
 
-<button class="weiterbutton" value="weiter">Weiter</button>
+        ul.list-group.list-group-striped li:nth-of-type(even){
+            background: #b6d4fe;
+        }
 
-<ul id = "belegte-module" style="list-style-type:none;">
-    gewählte Module
-    {% set data = namespace(temp_bool=False) %}
-    {% for item in gewaehlte_module_name %}
-        {% set data.temp_bool = false %}
-        {% for x in benutzer_modul_ids if data.temp_bool == false %}
-            <li class = "semester-list" value = {{item[0][0]}} id = {{x}}>{{item}}</li>
-            {% set data.temp_bool = true %}
+        ul.list-group.list-group-hover li:hover{
+            background: limegreen;
+            color: white;
+        }
+
+        ul.belegte-module.list-group.list-group-hover li:hover{
+            background: indianred;
+            color: white;
+        }
+
+        ul{
+            list-style-type: none;
+        }
+
+        li{
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        li:active{
+            background: #030385;
+            color: white;
+        }
+
+        h2{
+            margin-left: 10px;
+            color: #030385;
+        }
+
+        h3{
+            background: #030385;
+            color: white;
+            padding: 4px;
+        }
+
+        h4 h5{
+            background: whitesmoke;
+            padding: 4px;
+        }
+
+        h6{
+            background: #030385;
+            color: white;
+            padding: 4px;
+            margin: 0;
+        }
+
+        .btn-primary{
+            background: #030385;
+            border-color: #030385
+        }
+
+        .btn-wrapper{
+            display: flex;
+            flex-direction: column;
+            margin: 15px 200px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .sem-buttons{
+            margin-left: 10px;
+        }
+
+        .lp-gesamt-container{
+            background: #030385;
+            color: white;
+            font-weight: bold;
+        }
+
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<div class ="main-container">
+    <div class = "veranstaltungen">
+    <h3>Verfügbare Kurse für das {{current_semester}}. Semester</h3>
+    <h4>Pflichtbereich ({{user_pflicht_lp_ist}} / {{user_pflicht_lp_soll}})</h4>
+    {% if module1 or pflichtkurse_nicht_empfohlen or pflichtkurse_vertiefung_empfohlen or pflichtkurse_vertiefung_nicht_empfohlen %}
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>empfohlene Pflichtmodule</h6>
+        {% for item in module1 %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
         {% endfor %}
-    {% endfor %}
-</ul>
+    </ul>
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>nicht empfohlene Pflichtmodule</h6>
+        {% for item in pflichtkurse_nicht_empfohlen %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>empfohlene Pflichtmodule aus der gewählten Vertiefung</h6>
+        {% for item in pflichtkurse_vertiefung_empfohlen %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>nicht empfohlene Pflichtkurse aus der gewählten Vertiefung</h6>
+        {% for item in pflichtkurse_vertiefung_nicht_empfohlen %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 
-<ul class = "Zähler" style="list-style-type:none;" >
+    <h4>Grundlagenpraktikum ({{user_grundlagenpraktikum_lp_ist}} / {{user_grundlagenpraktikum_lp_soll}})</h4>
+    {% if grundlagenpraktikum or grundlagenpraktikum_nicht_empfohlen %}
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>empfohlenes Grundlagenpraktikum</h6>
+        {% for item in grundlagenpraktikum %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% endif %}
+    {% if grundlagenpraktikum_nicht_empfohlen %}
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>nicht empfohlenes Grundlagenpraktikum</h6>
+        {% for item in grundlagenpraktikum_nicht_empfohlen %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h4>zweites Grundlagenmodul ({{user_weitere_einfuehrung_LP_ist}} / {{user_weitere_einfuehrung_LP_soll}})</h4>
+    {% if zweites_Grundlagenmodul or zweites_Grundlagenmodul_nicht_empfohlen%}
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>empfohlenes zweites Grundlagenmodul</h6>
+        {% for item in zweites_Grundlagenmodul %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>nicht empfohlenes zweites Grundlagenmodul</h6>
+        {% for item in zweites_Grundlagenmodul_nicht_empfohlen %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h4>Wahlpflichtbereich ({{user_wahlpflicht_LP_ist_summe}} / {{user_max_wahlpflicht_LP}})</h4>
+    <h5>Leistungspunkte aus der eigenen Vertiefung ({{user_wahlpflicht_LP_ist}} / {{user_min_wahlpflicht_LP}} - {{user_max_wahlpflicht_LP}}) </h5>
+    <h5>Leistungspunkte aus anderen Vertiefungen ({{user_wahlpflicht_andere_LP_ist}} / {{user_min_wahlpflicht_andere_LP}} - {{user_max_wahlpflicht_andere_LP}})</h5>
+    {% if empfohlene_wahlpflichtkurse or nichtempfohlene_wahlpflichtkurse or andere_empfohlene_wahlpflichtkurse or andere_nichtempfohlene_wahlpflichtkurse %}
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>empfohlene Wahlpflichtkurse</h6>
+        {% for item in empfohlene_wahlpflichtkurse %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>nicht empfohlene Wahlpflichtkurse</h6>
+        {% for item in nichtempfohlene_wahlpflichtkurse %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>empfohlene Wahlpflichkturse aus anderen Vertiefungen</h6>
+        {% for item in andere_empfohlene_wahlpflichtkurse %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    <ul class ="list-group list-group-hover list-group-striped">
+        <h6>nicht empfohlene Wahlpfichtkurse aus anderen Vertiefungen</h6>
+        {% for item in andere_nichtempfohlene_wahlpflichtkurse %}
+            <li class = li value = {{item[0]}}>
+                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+</div>
+
+<div class="semester-und-gewählte-module">
+    <h2>Modulauswahl</h2>
+    <div class ="semester-container">
+        {% for sem in range(1, semester_anzahl + 1) %}
+            {% if current_semester != sem %}
+                <li class ="semester" id="{{sem}}">{{sem}}. Semester </li>
+            {% elif current_semester == sem %}
+                <li class ="semester active" id="{{current_semester}}">{{sem}}. Semester </li>
+            {% endif %}
+        {% endfor %}
+
+    </div>
+    <div class="sem-buttons">
+    <button class="btn btn-primary add" onclick="addSemester()">Semester hinzufügen</button>
+    <button class="btn btn-warning delete" onclick="deleteLastSemester()">Semester löschen</button>
+    </div>
+<!--<button class="awdjk" onclick="addSemester()">Add Semester</button> -->
+<div class = belegte-module-container>
+    <ul id = "belegte-module" class ="belegte-module list-group list-group-hover list-group-striped">
+    <h6>gewählte Module im {{current_semester}}. Semester</h6>
+        {% for x in temp_list %}
+            <li class = "semester-list" value = {{x[0][0][0]}} id = {{x[1]}}>
+                    ID: {{x[0][0][0]}}, Name: {{x[0][0][2]}}, Leistungspunkte: {{x[0][0][6]}}, Semesterwochenstunden: {{x[0][0][7]}}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+
+
+<div class = "Zähler" style="list-style-type:none;" >
+<!--
     <li>PflichtLP ist: {{user_pflicht_lp_ist}} / PflichtLP soll: {{user_pflicht_lp_soll}}</li>
     {% if user_grundlagenpraktikum_lp_ist and user_grundlagenpraktikum_lp_soll %}
         <li>GrundlagenpraktikumLP ist: {{user_grundlagenpraktikum_lp_ist}} / GrundlagenpraktikumLP soll: {{user_grundlagenpraktikum_lp_soll}}</li>
@@ -125,8 +330,19 @@
     <li>Weitere Einführung LP ist: {{user_weitere_einfuehrung_LP_ist}} / Weitere Einführung LP soll: {{user_weitere_einfuehrung_LP_soll}}</li>
     <li>WahlpflichtLP ist: {{user_wahlpflicht_LP_ist}} / WahlfplichtLP soll: {{user_min_wahlpflicht_LP}} - {{user_max_wahlpflicht_LP}}</li>
     <li>WahlpflichtLP andere Module ist: {{user_wahlpflicht_andere_LP_ist}} / WahlfplichtLP andere Module soll: {{user_min_wahlpflicht_andere_LP}} - {{user_max_wahlpflicht_andere_LP}}</li>
-    <li>LP Gesamt: {{lp_gesamt}}</li>
-    <li>Semesterwochenstunden: {{semesterwochenstunden}}</li>
-</ul>
+-->
+    <div>LP in diesem Semester: {{lp_gesamt}}</div>
+    <div>Semesterwochenstunden in diesem Semester: {{semesterwochenstunden}}</div>
+    <div class="lp-gesamt-container">LP Insgesamt: {{lp_gesamt_alle_semester}}</div>
+</div>
 
-</body>
+    {% if lp_gesamt_alle_semester == 180 %}
+        <div class="btn-wrapper">
+        <a class="btn btn-primary" href="/verlaufsplan" role="button">Fertigstellen</a>
+        </div>
+    {% endif %}
+
+
+</div>
+    </div>
+{% endblock %}

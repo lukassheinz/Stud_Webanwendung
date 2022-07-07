@@ -1,131 +1,112 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base_modulauswahl.html" %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% block title %}
+Verlaufsplan
+{% endblock %}
 
-    <link rel="stylesheet" href='/static/css/jquery.steps.css' />
-    <link rel="stylesheet" href='/static/css/bootstrap.min.css' />
-    <link rel="stylesheet" href='/static/css/index.css' />
-    <!-- <link rel="stylesheet" href='/static/css/drag.css' /> -->
+{% block head %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <script src='/static/js/jquery.min.js'></script>
+    <script src='/static/js/jquery.steps.min.js'></script>
+    <script src="/static/js/verlaufsplan.js"></script>
 
-    <script rel="stylesheet" src='/static/js/jquery.min.js'></script>
-    <script rel="stylesheet" src='/static/js/jquery.steps.min.js'></script>
-    <!--<script rel="stylesheet" src='/static/js/drag'></script>-->
+    <style>
+        .flex-container {
+            margin-top: 40px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            border: 5px solid black;
+        }
 
+        .flex-item {
+            margin: 1%;
+            flex: auto;
+            text-align: center;
+            min-height: 125px;
+            border: 1px solid black;
+            padding: 5px;
+            margin: 5px;
+        }
 
+        .flex-item.semester{
+            border: none;
+            border-right: 1px solid black;
+        }
 
-    <title>Studienplaner</title>
-</head>
+        p{
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
 
-<body>
+        .modul{
+            cursor: pointer;
+        }
 
-    <h1>
-        Drag and Drop HTML5
-    </h1>
+        .abgeschlossen{
+            color: white;
+            background: #030385;
+        }
 
+        .belegt{
 
+        }
 
-    <div id="example-basic" class="mt-2">
-        <h3>Wähle dein Startsemester</h3>
-        <section>
-            <div class="d-flex justify-content-center align-items-center w-100">
-                <button class="chooseButton" onclick="setSemester(1)" id="semester_1">
-            WiSe
-          </button>
-                <button class="chooseButton" onclick="setSemester(2)" id="semester_2">
-            SoSe
-          </button>
+        figcaption{
+            margin-top: 5px;
+            display: flex;
+        }
+
+        .blue-box{
+            background-color: #030385;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 1px solid black;
+        }
+
+        .white-box{
+            background-color: white;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 1px solid black;
+        }
+
+        .white-box-text{
+            margin-right: 10px;
+        }
+
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<h2>Dein Studienverlaufsplan</h2>
+<div class="container">
+    <figure>
+    <div class="flex-container">
+        {% for sem in range(1, semester_anzahl + 1) %}
+        <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+            {% for modul in module_for_jeweiliges_semester[sem - 1] %}
+            <div class="flex-item modul {{modul[10]}}" value="{{modul[0]}}">
+                <p>{{modul[2]}} </p>
+                <p>LP: {{modul[6]}}, SWS: {{modul[7]}} </p>
             </div>
-        </section>
-        <h3>Wähle zwei Vertiefungen</h3>
-        <section>
-            <div class="d-flex justify-content-center align-items-center w-100">
-                <button class="chooseButton" onclick="addVertiefung(1)" id="vertiefung_1">
-            EC
-          </button>
-                <button class="chooseButton" onclick="addVertiefung(2)" id="vertiefung_2">
-            VC
-          </button>
-                <button class="chooseButton" onclick="addVertiefung(3)" id="vertiefung_3">
-            CISS
-          </button>
-                <button class="chooseButton" onclick="addVertiefung(4)" id="vertiefung_4">
-            MI
-          </button>
-            </div>
-        </section>
-        <h3>Wähle deine Anzahl an Semestern Startsemester</h3>
-        <section style="overflow-y: hidden">
-            <div class="d-flex justify-content-center align-items-center w-100">
-                <button class="chooseButton" id="semester_anzahl_1" onclick="setSemesterAnzahl(1)">
-            1 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_2" onclick="setSemesterAnzahl(2)">
-            2 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_3" onclick="setSemesterAnzahl(3)">
-            3 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_4" onclick="setSemesterAnzahl(4)">
-            4 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_5" onclick="setSemesterAnzahl(5)">
-            5 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_6" onclick="setSemesterAnzahl(6)">
-            6 Semester
-          </button>
-            </div>
-
-            <div class="d-flex justify-content-center align-items-center w-100">
-                <button class="chooseButton" id="semester_anzahl_7" onclick="setSemesterAnzahl(7)">
-            7 Semester
-          </button>
-                <button class="chooseButton" id="semester_anzahl_8" onclick="setSemesterAnzahl(8)">
-            8 Semester
-          </button>
-            </div>
-        </section>
-        <h3>Erstelle deinen Plan</h3>
-        <section>
-            <ul class="accordion" id="accordion" style="list-style: none !important">
-                <li>
-                    <a class="toggle" href="#" id="faecher_1">1. Semester</a>
-                    <div class="inner">Fächer</div>
-                </li>
-
-                <li>
-                    <a class="toggle" href="#" id="faecher_2">2. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-
-                <li>
-                    <a class="toggle" href="#" id="faecher_3">3. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-
-                <li>
-                    <a class="toggle" href="#" id="faecher_4">4. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-
-                <li>
-                    <a class="toggle" href="#" id="faecher_5">5. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-
-                <li>
-                    <a class="toggle" href="#" id="faecher_6">6. Semester</a>
-                    <div class="inner">Fächer initialisieren</div>
-                </li>
-            </ul>
-        </section>
+            {% endfor %}
+        </div>
+        {% endfor %}
     </div>
-</body>
+        <figcaption>
+            <p class="white-box"> </p>
+            <p class="white-box-text"> = belegt </p>
+            <p class="blue-box"> </p>
+            <p class="blue-box-text"> = abgeschlossen </p>
+        </figcaption>
+        <a class="btn btn-warning" href="/modulauswahl" role="button" style="float: right; margin-top: 10px;">Bearbeiten</a>
+    </figure>
+</div>
 
-<script type="text/javascript" src='/static/js/index.js'></script>
-
-</html>
+{% endblock %}

@@ -290,6 +290,7 @@ def verlaufsplan():
     user = dbase.get_user(user_matrikelnummer, user_passwort_hash)
     user_id = session["user_ID"] = user[0][0]
     semester_anzahl = user[0][11]
+    user_wahlvertiefung_ID = user[0][5]
     semester_modul_liste = []
 
     if request.is_json:
@@ -313,10 +314,35 @@ def verlaufsplan():
     for i in range(1, semester_anzahl + 1):
         module_for_jeweiliges_semester.append(dbase.get_ausgewählte_module_infos(user_id, i))
 
+    #Für jeweiliges Semester LP und SWS bekommen
+    semester_lp_liste = []
+    semester_sws_liste = []
+    for i in range(1, semester_anzahl + 1):
+        lp_gesamt = int(dbase.get_Summe_Pflicht_Vertiefung(user_wahlvertiefung_ID, user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_WPF_Vertiefung(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_WPF_andere(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_Grundlagenpraktika(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_weitere_Einfuehrung(user_id, i)[0][0])
+
+        semesterwochenstunden = int(dbase.get_Summe_Pflicht_Vertiefung_sws(user_wahlvertiefung_ID, user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_WPF_Vertiefung_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_WPF_andere_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_Grundlagenpraktika_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_weitere_Einfuehrung_sws(user_id, i)[0][0])
+
+        semester_lp_liste.append(lp_gesamt)
+        semester_sws_liste.append(semesterwochenstunden)
+
+    print(semester_sws_liste)
+    print(semester_lp_liste)
+
+
     return render_template("verlaufsplan.html",
                            semester_anzahl = semester_anzahl,
                            semester_modul_liste = semester_modul_liste,
-                           module_for_jeweiliges_semester = module_for_jeweiliges_semester)
+                           module_for_jeweiliges_semester = module_for_jeweiliges_semester,
+                           semester_lp_liste = semester_lp_liste,
+                           semester_sws_liste = semester_sws_liste)
 
 
 

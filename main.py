@@ -348,7 +348,6 @@ def modulauswahl():
             dbase.update_semester_anzahl(user_id, semester_anzahl)
         if (request.args.get("class") == "btn btn-warning delete"):
             if semester_anzahl > 6:
-                print("AOWID", semester_anzahl)
                 dbase.delete_gewählte_module_in_semester(user_id, semester_anzahl)
                 if semester_anzahl == current_semester:
                     current_semester = current_semester - 1
@@ -395,6 +394,8 @@ def modulauswahl():
                             int(dbase.get_Summe_WPF_andere(user_id, current_semester)[0][0]) +\
                             int(dbase.get_Summe_Grundlagenpraktika(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_weitere_Einfuehrung(user_id, current_semester)[0][0])
+    print("1. ", int(dbase.get_Summe_Pflicht_Vertiefung(user_wahlvertiefung_ID, user_id, current_semester)[0][0]))
+    print("LP_GESSAMT:", lp_gesamt) #empfohlene Wahlpflichkturse aus anderen Vertiefungen irgendwas mit weitere wpm nur bei geraden?
 
     #LP-Gesamt in den vorherigen Semestern (Für Bachelorarbeit relevant)
     lp_gesamt_vor_sem = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_wahlvertiefung_ID, user_id, current_semester)[0][0]) + \
@@ -529,8 +530,10 @@ def modulauswahl():
                     for t in id_list_nachfolgende_semester:
                         for i in id_list_voraussetzungen_nach:
                             if int(i) == int(t[0]):
-                                flash("Kurs hat eine Voraussetzung mit der ID " + str(i) + ", welche den Kurs als voraussetzung in einem folgenden Semester hat.")
-                                print("Kurs hat eine Voraussetzung mit der ID " + str(i) + ", welche den Kurs als voraussetzung in einem folgenden Semester hat.")
+                                modul_from_db = dbase.get_single_module(i)
+                                #flash("Kurs hat eine Voraussetzung mit der ID " + str(i) + " (" + modul_from_db[0][2] + ") , welche den Kurs als voraussetzung in einem folgenden Semester hat.")
+                                flash("Das Modul kann nicht abgewählt werden, weil der Kurs >>" + modul_from_db[0][2] + "<<, welches in einem späteren Semester gewählt wurde, das Modul als Voraussetzung hat.")
+                                #print("Kurs hat eine Voraussetzung mit der ID " + str(i) + ", welche den Kurs als voraussetzung in einem folgenden Semester hat.")
                                 increment = increment + 1
             if increment > 0:
                 return redirect(request.url)
@@ -589,7 +592,9 @@ def modulauswahl():
                 unbelegte_vorausgesetzte_kurse.append(str(v[1])) # Vorausgesetzter kurs und noch nicht belegt
                 if unbelegte_vorausgesetzte_kurse:
                     for unbelegt in unbelegte_vorausgesetzte_kurse:
-                        flash("Kurs hat eine Voraussetzung mit der ID " + unbelegt + ", welche du noch nicht abgeschlossen hast.")
+                        modul_from_db = dbase.get_single_module(unbelegt)
+                        #flash("Kurs hat eine Voraussetzung mit der ID " + unbelegt + " (" + modul_from_db[0][2] + "), welche du noch nicht abgeschlossen hast.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< wird als Voraussetzung für das Modul benötigt.")
                     increment = increment + 1
         if increment > 0:
             return redirect(request.url)
@@ -604,28 +609,40 @@ def modulauswahl():
                 if(int(idModule) == i[0]):
                     temp_wahlpflicht_lp = int(elementFromDB[0][6])
                     if (user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 30) or (user_wahlpflicht_LP_ist + temp_wahlpflicht_lp > 30):
-                        flash("Wahl des Modules mit ID " + idModule + " nicht möglich.")
+                        modul_from_db = dbase.get_single_module(idModule)
+                        #flash("Wahl des Modules mit ID " + idModule + " (" + modul_from_db[0][2] + ") nicht möglich.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< ist nicht wählbar, "
+                                                                     "weil es die maximale Anzahl an Leistungspunkten im Wahlpflichtbereich überschreiten würde.")
                         return redirect(request.url)
 
             for i in nichtempfohlene_wahlpflichtkurse:
                 if(int(idModule) == i[0]):
                     temp_wahlpflicht_lp = int(elementFromDB[0][6])
                     if (user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 30) or (user_wahlpflicht_LP_ist + temp_wahlpflicht_lp > 30):
-                        flash("Wahl des Modules mit ID " + idModule + " nicht möglich.")
+                        modul_from_db = dbase.get_single_module(idModule)
+                        #flash("Wahl des Modules mit ID " + idModule + " (" + modul_from_db[0][2] + ") nicht möglich.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< ist nicht wählbar, "
+                                                                     "weil es die maximale Anzahl an Leistungspunkten im Wahlpflichtbereich überschreiten würde.")
                         return redirect(request.url)
 
             for i in andere_empfohlene_wahlpflichtkurse:
                 if (int(idModule) == i[0]):
                     temp_wahlpflicht_lp = int(elementFromDB[0][6])
                     if(user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 30) or(user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 12):
-                        flash("Wahl des Modules mit ID " + idModule + " nicht möglich.")
+                        modul_from_db = dbase.get_single_module(idModule)
+                        #flash("Wahl des Modules mit ID " + idModule + " (" + modul_from_db[0][2] + ") nicht möglich.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< ist nicht wählbar, "
+                                                                     "weil es die maximale Anzahl an Leistungspunkten im Wahlpflichtbereich überschreiten würde.")
                         return redirect(request.url)
 
             for i in andere_nichtempfohlene_wahlpflichtkurse:
                 if (int(idModule) == i[0]):
                     temp_wahlpflicht_lp = int(elementFromDB[0][6])
                     if (user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 30) or (user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 12):
-                        flash("Wahl des Modules mit ID " + idModule + " nicht möglich.")
+                        modul_from_db = dbase.get_single_module(idModule)
+                        #flash("Wahl des Modules mit ID " + idModule + " (" + modul_from_db[0][2] + ") nicht möglich.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< ist nicht wählbar, "
+                                                                     "weil es die maximale Anzahl an Leistungspunkten im Wahlpflichtbereich überschreiten würde.")
                         return redirect(request.url)
 
         elif user_wahlvertiefung_ID == 2:
@@ -633,28 +650,40 @@ def modulauswahl():
                 if(int(idModule) == i[0]):
                     temp_wahlpflicht_lp = int(elementFromDB[0][6])
                     if (user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 12) or (user_wahlpflicht_LP_ist + temp_wahlpflicht_lp > 12):
-                        flash("Wahl des Modules mit ID " + idModule + " nicht möglich.")
+                        modul_from_db = dbase.get_single_module(idModule)
+                        #flash("Wahl des Modules mit ID " + idModule + " (" + modul_from_db[0][2] + ") nicht möglich.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< ist nicht wählbar, "
+                                                                     "weil es die maximale Anzahl an Leistungspunkten im Wahlpflichtbereich überschreiten würde.")
                         return redirect(request.url)
 
             for i in nichtempfohlene_wahlpflichtkurse:
                 if(int(idModule) == i[0]):
                     temp_wahlpflicht_lp = int(elementFromDB[0][6])
                     if (user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 12) or (user_wahlpflicht_LP_ist + temp_wahlpflicht_lp > 12):
-                        flash("Wahl des Modules mit ID " + idModule + " nicht möglich.")
+                        modul_from_db = dbase.get_single_module(idModule)
+                        #flash("Wahl des Modules mit ID " + idModule + " (" + modul_from_db[0][2] + ") nicht möglich.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< ist nicht wählbar, "
+                                                                     "weil es die maximale Anzahl an Leistungspunkten im Wahlpflichtbereich überschreiten würde.")
                         return redirect(request.url)
 
             for i in andere_empfohlene_wahlpflichtkurse:
                 if (int(idModule) == i[0]):
                     temp_wahlpflicht_lp = int(elementFromDB[0][6])
                     if(user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 12) or (user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 6):
-                        flash("Wahl des Modules mit ID " + idModule + " nicht möglich.")
+                        modul_from_db = dbase.get_single_module(idModule)
+                        #flash("Wahl des Modules mit ID " + idModule + " (" + modul_from_db[0][2] + ") nicht möglich.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< ist nicht wählbar, "
+                                                                     "weil es die maximale Anzahl an Leistungspunkten im Wahlpflichtbereich überschreiten würde.")
                         return redirect(request.url)
 
             for i in andere_nichtempfohlene_wahlpflichtkurse:
                 if (int(idModule) == i[0]):
                     temp_wahlpflicht_lp = int(elementFromDB[0][6])
                     if (user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 12) or (user_wahlpflicht_andere_LP_ist + temp_wahlpflicht_lp > 6):
-                        flash("Wahl des Modules mit ID " + idModule + " nicht möglich.")
+                        modul_from_db = dbase.get_single_module(idModule)
+                        #flash("Wahl des Modules mit ID " + idModule + " (" + modul_from_db[0][2] + ") nicht möglich.")
+                        flash("Das Modul >>" + modul_from_db[0][2] + "<< ist nicht wählbar, "
+                                                                     "weil es die maximale Anzahl an Leistungspunkten im Wahlpflichtbereich überschreiten würde.")
                         return redirect(request.url)
 
 

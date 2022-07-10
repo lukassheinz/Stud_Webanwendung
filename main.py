@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/testdb' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -59,9 +59,10 @@ login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(matrikelnummer):
-    return benutzer.query.get(int(matrikelnummer))
+    return Studierende.query.get(int(matrikelnummer))
 
-class benutzer(UserMixin, db.Model):
+class Studierende(UserMixin, db.Model):
+    __tablename__ = 'benutzer'
     ID = db.Column(db.Integer, primary_key=True)
     matrikelnummer = db.Column(db.Integer)
     vorname = db.Column(db.String(50))
@@ -73,7 +74,8 @@ class benutzer(UserMixin, db.Model):
     immatrikulationsjahr = db.Column(db.String(4))
     wahlvertiefung2_ID = db.Column(db.Integer)
 
-class modul(UserMixin, db.Model):
+class Modul(UserMixin, db.Model):
+    __tablename__ = 'modul'
     ID = db.Column(db.Integer, primary_key=True)
     nummer = db.Column(db.String(50))
     modultitel = db.Column(db.String(50))
@@ -83,8 +85,41 @@ class modul(UserMixin, db.Model):
     leistungspunkte = db.Column(db.Integer)
     semesterwochenstunden = db.Column(db.Integer)
     voraussetzungslp = db.Column(db.Integer)
+    modulvertiefung = db.relationship('Modulvertiefung', backref='modul')
+    def __str__(self):
+        return self.modultitel
 
+class Vertiefung(UserMixin, db.Model):
+    __tablename__ = 'vertiefung'
+    ID = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    prof_ID = db.Column(db.Integer)
+    pflicht_LP = db.Column(db.Integer)
+    grundlagenpraktikum_LP = db.Column(db.Integer)
+    weitere_einfuehrung_LP = db.Column(db.Integer)
+    min_wahlpflicht_vertiefung_LP = db.Column(db.Integer)
+    max_wahlpflicht_vertiefung_LP = db.Column(db.Integer)
+    min_wahlpflicht_andere_LP = db.Column(db.Integer)
+    max_wahlpflicht_andere_LP = db.Column(db.Integer)
+    wahlpflicht_LP = db.Column(db.Integer)
+    modulvertiefung = db.relationship('Modulvertiefung', backref='vertiefung')
+    def __str__(self):
+        return self.name
 
+class Modulvertiefung(UserMixin, db.Model):
+    __tablename__ = 'vertiefung_modul'
+    ID = db.Column(db.Integer, primary_key=True)
+    vertiefung_ID = db.Column(db.Integer, db.ForeignKey('vertiefung.ID'))
+    modul_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
+    zuordnung = db.Column(db.Enum('erlaubt_in', 'gehoert_zu', 'Pflicht_in'))
+
+class Modulvoraussetzung(UserMixin, db.Model):
+    __tablename__ = 'voraussetzung_modul'
+    ID = db.Column(db.Integer, primary_key=True)
+    modulvoraussetzung_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
+    modul_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
+    modul = db.relationship('Modul', backref='modulvoraussetzung_modul', foreign_keys=modul_ID)
+    modulvoraussetzung = db.relationship('Modul', backref='modul_voraussetzungmodul', foreign_keys=modulvoraussetzung_ID)
 
 class prof(UserMixin, db.Model):
     ID = db.Column(db.Integer, primary_key=True)
@@ -277,9 +312,10 @@ def proflogin():
 
 
 
-admin.add_view((SecureModelView( modul, db.session)))
-admin.add_view((SecureModelView( benutzer, db.session)))
-
+admin.add_view((SecureModelView(Modul, db.session)))
+admin.add_view((SecureModelView(Modulvertiefung, db.session)))
+admin.add_view((SecureModelView(Modulvoraussetzung, db.session)))
+admin.add_view((SecureModelView(Studierende, db.session)))
 
 
 @app.route('/verlaufsplan', methods=["GET", "POST"])

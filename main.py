@@ -14,22 +14,27 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/testdb' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
 
 
 app.config['SECRET_KEY'] = 'xxxxxxxxxxxxxxxxx!'
-admin = Admin(app, template_mode='bootstrap3', name='Verwaltung')
+admin = Admin(app, template_mode='bootstrap4', name='Verwaltung')
 bootstrap = Bootstrap(app)
 
 
-class SecureModelView(ModelView):
+class SecureModelViewModul(ModelView):
     # can_delete = False  # disable model deletion
     page_size = 100  # the number of entries to display on the list view
     #create_modal = True
     #edit_modal = True
+
+    edit_template = 'modul_edit.html'
+    create_template = 'modul_create.html'
+
+    form_excluded_columns = ['modulvertiefung', 'Modulvoraussetzung_Modul', 'Modul_Voraussetzungmodul']
 
     form_choices = {
         ####### Für Module
@@ -50,6 +55,114 @@ class SecureModelView(ModelView):
             return True
         else:
             abort(403)
+
+    def get_save_return_url(self, model, is_created=False):
+        return url_for('Voraussetzung.create_view')
+
+class SecureModelViewBenutzer(ModelView):
+    # can_delete = False  # disable model deletion
+    page_size = 100  # the number of entries to display on the list view
+    #create_modal = True
+    #edit_modal = True
+
+    edit_template = 'benutzer_edit.html'
+    create_template = 'benutzer_create.html'
+
+
+
+    form_choices = {
+        ####### Für Module
+        'pflicht_wahlpflicht': [('Pflicht', 'Pflicht'), ('Wahlpflicht', 'Wahlpflicht'), ('Einfuehrung', 'Einfuehrung'),
+                                ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
+        'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
+        'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
+                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
+        'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                              ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'immatrikulationssemester': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester')]
+    }
+
+    def is_accessible(self):
+        if "logged_in" in session:
+            return True
+        else:
+            abort(403)
+
+    def get_save_return_url(self, model, is_created=False):
+        return url_for('Modul.create_view')
+
+
+class SecureModelViewVoraussetzung(ModelView):
+    # can_delete = False  # disable model deletion
+    page_size = 100  # the number of entries to display on the list view
+    #create_modal = True
+    #edit_modal = True
+
+    #edit_template = 'benutzer_edit.html'
+    create_template = 'voraussetzung_create.html'
+
+
+
+    form_choices = {
+        ####### Für Module
+        'pflicht_wahlpflicht': [('Pflicht', 'Pflicht'), ('Wahlpflicht', 'Wahlpflicht'), ('Einfuehrung', 'Einfuehrung'),
+                                ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
+        'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
+        'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
+                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
+        'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                              ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'immatrikulationssemester': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester')]
+    }
+
+    def is_accessible(self):
+        if "logged_in" in session:
+            return True
+        else:
+            abort(403)
+
+    def get_save_return_url(self, model, is_created=False):
+        return url_for('Vertiefung.create_view')
+
+class SecureModelViewVertiefung(ModelView):
+    # can_delete = False  # disable model deletion
+    page_size = 100  # the number of entries to display on the list view
+    #create_modal = True
+    #edit_modal = True
+
+    #edit_template = 'benutzer_edit.html'
+    create_template = 'vertiefung_create.html'
+
+
+
+    form_choices = {
+        ####### Für Module
+        'pflicht_wahlpflicht': [('Pflicht', 'Pflicht'), ('Wahlpflicht', 'Wahlpflicht'), ('Einfuehrung', 'Einfuehrung'),
+                                ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
+        'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
+        'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
+                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
+        'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                              ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
+                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
+        'immatrikulationssemester': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester')]
+    }
+
+    def is_accessible(self):
+        if "logged_in" in session:
+            return True
+        else:
+            abort(403)
+
+    def get_save_return_url(self, model, is_created=False):
+        return url_for('admin.index')
+
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -120,6 +233,14 @@ class Modulvoraussetzung(UserMixin, db.Model):
     modul_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
     modul = db.relationship('Modul', backref='modulvoraussetzung_modul', foreign_keys=modul_ID)
     modulvoraussetzung = db.relationship('Modul', backref='modul_voraussetzungmodul', foreign_keys=modulvoraussetzung_ID)
+
+
+admin.add_view((SecureModelViewModul(Modul, db.session, endpoint='Modul')))
+admin.add_view((SecureModelViewVoraussetzung(Modulvoraussetzung, db.session, endpoint='Voraussetzung')))
+admin.add_view((SecureModelViewVertiefung(Modulvertiefung, db.session, endpoint='Vertiefung')))
+admin.add_view((SecureModelViewBenutzer(Studierende, db.session, endpoint='Benutzer')))
+
+
 
 class prof(UserMixin, db.Model):
     ID = db.Column(db.Integer, primary_key=True)
@@ -312,10 +433,7 @@ def proflogin():
 
 
 
-admin.add_view((SecureModelView(Modul, db.session)))
-admin.add_view((SecureModelView(Modulvertiefung, db.session)))
-admin.add_view((SecureModelView(Modulvoraussetzung, db.session)))
-admin.add_view((SecureModelView(Studierende, db.session)))
+
 
 
 @app.route('/verlaufsplan', methods=["GET", "POST"])

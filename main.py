@@ -42,12 +42,7 @@ class SecureModelViewModul(ModelView):
                                 ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
         'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
         'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
-                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
-        'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
-                              ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
-        'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
-                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
-        'immatrikulationssemester': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester')]
+                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')]
     }
 
     def is_accessible(self):
@@ -71,12 +66,6 @@ class SecureModelViewBenutzer(ModelView):
 
 
     form_choices = {
-        ####### Für Module
-        'pflicht_wahlpflicht': [('Pflicht', 'Pflicht'), ('Wahlpflicht', 'Wahlpflicht'), ('Einfuehrung', 'Einfuehrung'),
-                                ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
-        'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
-        'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
-                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
         'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
         'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
@@ -103,22 +92,6 @@ class SecureModelViewVoraussetzung(ModelView):
     #edit_template = 'benutzer_edit.html'
     create_template = 'voraussetzung_create.html'
 
-
-
-    form_choices = {
-        ####### Für Module
-        'pflicht_wahlpflicht': [('Pflicht', 'Pflicht'), ('Wahlpflicht', 'Wahlpflicht'), ('Einfuehrung', 'Einfuehrung'),
-                                ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
-        'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
-        'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
-                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
-        'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
-                              ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
-        'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
-                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
-        'immatrikulationssemester': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester')]
-    }
-
     def is_accessible(self):
         if "logged_in" in session:
             return True
@@ -137,21 +110,6 @@ class SecureModelViewVertiefung(ModelView):
     #edit_template = 'benutzer_edit.html'
     create_template = 'vertiefung_create.html'
 
-
-
-    form_choices = {
-        ####### Für Module
-        'pflicht_wahlpflicht': [('Pflicht', 'Pflicht'), ('Wahlpflicht', 'Wahlpflicht'), ('Einfuehrung', 'Einfuehrung'),
-                                ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
-        'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
-        'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
-                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
-        'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
-                              ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
-        'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
-                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
-        'immatrikulationssemester': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester')]
-    }
 
     def is_accessible(self):
         if "logged_in" in session:

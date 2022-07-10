@@ -269,7 +269,7 @@ def index():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = benutzer.query.filter_by(matrikelnummer=form.username.data).first()
+        user = Studierende.query.filter_by(matrikelnummer=form.username.data).first()
         if user:
             if check_password_hash(user.passwort, form.password.data):
                 session["matrikelnummer"] = request.form["username"]
@@ -287,7 +287,7 @@ def signup():
     form = RegisterForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='sha256')
-        new_user = benutzer(matrikelnummer=form.username.data, vorname=form.vorname.data, nachname=form.nachname.data, email=form.email.data, passwort=hashed_password, wahlvertiefung_ID=form.erste_Vertiefung.data, wahlvertiefung2_ID=form.zweite_Vertiefung.data, immatrikulationssemester=form.immatrikulationssemester.data, immatrikulationsjahr=form.immatrikulationsjahr.data)
+        new_user = Studierende(matrikelnummer=form.username.data, vorname=form.vorname.data, nachname=form.nachname.data, email=form.email.data, passwort=hashed_password, wahlvertiefung_ID=form.erste_Vertiefung.data, wahlvertiefung2_ID=form.zweite_Vertiefung.data, immatrikulationssemester=form.immatrikulationssemester.data, immatrikulationsjahr=form.immatrikulationsjahr.data)
         db.session.add(new_user)
         db.session.commit()
 

@@ -34,7 +34,7 @@ class SecureModelViewModul(ModelView):
     edit_template = 'modul_edit.html'
     create_template = 'modul_create.html'
 
-    form_excluded_columns = ['modulvertiefung', 'Modulvoraussetzung_Modul', 'Modul_Voraussetzungmodul']
+    form_excluded_columns = ['modulvertiefung']
 
     form_choices = {
         ####### Für Module
@@ -231,8 +231,8 @@ class Modulvoraussetzung(UserMixin, db.Model):
     ID = db.Column(db.Integer, primary_key=True)
     modulvoraussetzung_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
     modul_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
-    modul = db.relationship('Modul', backref='modulvoraussetzung_modul', foreign_keys=modul_ID)
-    modulvoraussetzung = db.relationship('Modul', backref='modul_voraussetzungmodul', foreign_keys=modulvoraussetzung_ID)
+    modul = db.relationship('Modul',  foreign_keys=modul_ID) #backref='modulvoraussetzung_modul',
+    modulvoraussetzung = db.relationship('Modul', foreign_keys=modulvoraussetzung_ID)  #, backref='modul_voraussetzungmodul'
 
 
 admin.add_view((SecureModelViewModul(Modul, db.session, endpoint='Modul')))

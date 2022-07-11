@@ -79,6 +79,7 @@ Verlaufsplan
             margin-right: 10px;
         }
 
+
     </style>
 
 {% endblock %}
@@ -96,6 +97,10 @@ Verlaufsplan
                 <p>LP: {{modul[6]}}, SWS: {{modul[7]}} </p>
             </div>
             {% endfor %}
+            <div class = "semester-counter">
+                <div class = "semester-lp">LP: {{semester_lp_liste[sem - 1]}}</div>
+                <div class = "semester-sws">SWS: {{semester_sws_liste[sem - 1]}}</div>
+            </div>
         </div>
         {% endfor %}
     </div>

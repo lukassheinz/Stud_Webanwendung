@@ -87,11 +87,11 @@ Modulauswahl
         }
 
         ul.list-group.list-group-striped li:nth-of-type(odd){
-            background: whitesmoke;
+            background: #c6e7f4;
         }
 
         ul.list-group.list-group-striped li:nth-of-type(even){
-            background: #b6d4fe;
+            background: #009ed4;
         }
 
         ul.list-group.list-group-hover li:hover{
@@ -178,7 +178,7 @@ Modulauswahl
         <h6>empfohlene Pflichtmodule</h6>
         {% for item in module1 %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -186,7 +186,7 @@ Modulauswahl
         <h6>nicht empfohlene Pflichtmodule</h6>
         {% for item in pflichtkurse_nicht_empfohlen %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -194,7 +194,7 @@ Modulauswahl
         <h6>empfohlene Pflichtmodule aus der gewählten Vertiefung</h6>
         {% for item in pflichtkurse_vertiefung_empfohlen %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -202,7 +202,7 @@ Modulauswahl
         <h6>nicht empfohlene Pflichtkurse aus der gewählten Vertiefung</h6>
         {% for item in pflichtkurse_vertiefung_nicht_empfohlen %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -214,7 +214,7 @@ Modulauswahl
         <h6>empfohlenes Grundlagenpraktikum</h6>
         {% for item in grundlagenpraktikum %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -225,7 +225,7 @@ Modulauswahl
         <h6>nicht empfohlenes Grundlagenpraktikum</h6>
         {% for item in grundlagenpraktikum_nicht_empfohlen %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -237,7 +237,7 @@ Modulauswahl
         <h6>empfohlenes zweites Grundlagenmodul</h6>
         {% for item in zweites_Grundlagenmodul %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -245,7 +245,7 @@ Modulauswahl
         <h6>nicht empfohlenes zweites Grundlagenmodul</h6>
         {% for item in zweites_Grundlagenmodul_nicht_empfohlen %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -259,7 +259,7 @@ Modulauswahl
         <h6>empfohlene Wahlpflichtkurse</h6>
         {% for item in empfohlene_wahlpflichtkurse %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -267,7 +267,7 @@ Modulauswahl
         <h6>nicht empfohlene Wahlpflichtkurse</h6>
         {% for item in nichtempfohlene_wahlpflichtkurse %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -275,7 +275,7 @@ Modulauswahl
         <h6>empfohlene Wahlpflichkturse aus anderen Vertiefungen</h6>
         {% for item in andere_empfohlene_wahlpflichtkurse %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -283,7 +283,7 @@ Modulauswahl
         <h6>nicht empfohlene Wahlpfichtkurse aus anderen Vertiefungen</h6>
         {% for item in andere_nichtempfohlene_wahlpflichtkurse %}
             <li class = li value = {{item[0]}}>
-                ID: {{item[0]}}, Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -313,7 +313,7 @@ Modulauswahl
     <h6>gewählte Module im {{current_semester}}. Semester</h6>
         {% for x in temp_list %}
             <li class = "semester-list" value = {{x[0][0][0]}} id = {{x[1]}}>
-                    ID: {{x[0][0][0]}}, Name: {{x[0][0][2]}}, Leistungspunkte: {{x[0][0][6]}}, Semesterwochenstunden: {{x[0][0][7]}}
+                    <!--ID: {{x[0][0][0]}}, -->Name: {{x[0][0][2]}}, Leistungspunkte: {{x[0][0][6]}}, Semesterwochenstunden: {{x[0][0][7]}}
             </li>
         {% endfor %}
     </ul>

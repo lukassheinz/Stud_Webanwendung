@@ -52,7 +52,7 @@ class SecureModelViewModul(ModelView):
             abort(403)
 
     def get_save_return_url(self, model, is_created=False):
-        return url_for('Voraussetzung.create_view')
+        return url_for('Vertiefung.create_view')
 
 class SecureModelViewBenutzer(ModelView):
     # can_delete = False  # disable model deletion
@@ -90,7 +90,7 @@ class SecureModelViewVoraussetzung(ModelView):
     #edit_modal = True
 
     #edit_template = 'benutzer_edit.html'
-    create_template = 'voraussetzung_create.html'
+    create_template = 'Voraussetzung_create.html'
 
     def is_accessible(self):
         if "logged_in" in session:
@@ -99,7 +99,7 @@ class SecureModelViewVoraussetzung(ModelView):
             abort(403)
 
     def get_save_return_url(self, model, is_created=False):
-        return url_for('Vertiefung.create_view')
+        return url_for('admin.index')
 
 class SecureModelViewVertiefung(ModelView):
     # can_delete = False  # disable model deletion
@@ -118,7 +118,7 @@ class SecureModelViewVertiefung(ModelView):
             abort(403)
 
     def get_save_return_url(self, model, is_created=False):
-        return url_for('admin.index')
+        return url_for('Voraussetzung.create_view')
 
 
 
@@ -194,8 +194,8 @@ class Modulvoraussetzung(UserMixin, db.Model):
 
 
 admin.add_view((SecureModelViewModul(Modul, db.session, endpoint='Modul')))
-admin.add_view((SecureModelViewVoraussetzung(Modulvoraussetzung, db.session, endpoint='Voraussetzung')))
 admin.add_view((SecureModelViewVertiefung(Modulvertiefung, db.session, endpoint='Vertiefung')))
+admin.add_view((SecureModelViewVoraussetzung(Modulvoraussetzung, db.session, endpoint='Voraussetzung')))
 admin.add_view((SecureModelViewBenutzer(Studierende, db.session, endpoint='Benutzer')))
 
 

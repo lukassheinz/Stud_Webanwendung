@@ -295,12 +295,18 @@ def verlaufsplan():
 
     if request.is_json:
         # von belegt auf abgeschlossen ändern
+
+        #Prüfen, ob Voraussetzung abgeschlossen worden ist
+
         if request.args.get("value") and "belegt" in request.args.get("class"):
             temp_module_id = request.args.get("value")
             semester_von_modul = request.args.get("semester")
             dbase.update_benutzer_modul(user_id, temp_module_id, semester_von_modul)
 
         # von abgeschlossen auf belegt ändern
+
+        #Prüfen, ob Modul Voraussetzung hat, die abgeschlossen worden ist
+
         elif request.args.get("value") and "abgeschlossen" in request.args.get("class"):
             temp_module_id = request.args.get("value")
             semester_von_modul = request.args.get("semester")
@@ -318,13 +324,13 @@ def verlaufsplan():
     semester_lp_liste = []
     semester_sws_liste = []
     for i in range(1, semester_anzahl + 1):
-        lp_gesamt = int(dbase.get_Summe_Pflicht_Vertiefung(user_wahlvertiefung_ID, user_id, i)[0][0]) + \
+        lp_gesamt = int(dbase.get_Summe_Pflicht_Vertiefung(user_id, user_id, i)[0][0]) + \
                     int(dbase.get_Summe_WPF_Vertiefung(user_id, i)[0][0]) + \
                     int(dbase.get_Summe_WPF_andere(user_id, i)[0][0]) + \
                     int(dbase.get_Summe_Grundlagenpraktika(user_id, i)[0][0]) + \
                     int(dbase.get_Summe_weitere_Einfuehrung(user_id, i)[0][0])
 
-        semesterwochenstunden = int(dbase.get_Summe_Pflicht_Vertiefung_sws(user_wahlvertiefung_ID, user_id, i)[0][0]) + \
+        semesterwochenstunden = int(dbase.get_Summe_Pflicht_Vertiefung_sws(user_id, user_id, i)[0][0]) + \
                                 int(dbase.get_Summe_WPF_Vertiefung_sws(user_id, i)[0][0]) + \
                                 int(dbase.get_Summe_WPF_andere_sws(user_id, i)[0][0]) + \
                                 int(dbase.get_Summe_Grundlagenpraktika_sws(user_id, i)[0][0]) + \
@@ -388,9 +394,11 @@ def modulauswahl():
     temp = dbase.get_vertiefungen2(user_wahlvertiefung_ID)
 
     #Pflichtmodule Leistungspunkte
-    sum_pflicht_vertiefung_lp = dbase.get_Summe_Pflicht_Vertiefung_Gesamt(user_wahlvertiefung_ID, user_id)
+    sum_pflicht_vertiefung_lp = dbase.get_Summe_Pflicht_Vertiefung_Gesamt(user_id, user_id)
+    print("SUMAOWIDJ", sum_pflicht_vertiefung_lp)
     user_pflicht_lp_soll = temp[0][3]
     user_pflicht_lp_ist = int(sum_pflicht_vertiefung_lp[0][0])
+    print("IAWNDAWKJND", user_pflicht_lp_ist)
 
     #Weitere Einführung Leistungspunkte
     sum_weitere_einfuherung_lp = dbase.get_Summe_weitere_Einfuehrung_Gesamt(user_id)
@@ -415,16 +423,15 @@ def modulauswahl():
 
 
     #LP-Gesamt
-    lp_gesamt = int(dbase.get_Summe_Pflicht_Vertiefung(user_wahlvertiefung_ID, user_id, current_semester)[0][0]) + \
+    lp_gesamt = int(dbase.get_Summe_Pflicht_Vertiefung(user_id, user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_WPF_Vertiefung(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_WPF_andere(user_id, current_semester)[0][0]) +\
                             int(dbase.get_Summe_Grundlagenpraktika(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_weitere_Einfuehrung(user_id, current_semester)[0][0])
-    print("1. ", int(dbase.get_Summe_Pflicht_Vertiefung(user_wahlvertiefung_ID, user_id, current_semester)[0][0]))
     print("LP_GESSAMT:", lp_gesamt) #empfohlene Wahlpflichkturse aus anderen Vertiefungen irgendwas mit weitere wpm nur bei geraden?
 
     #LP-Gesamt in den vorherigen Semestern (Für Bachelorarbeit relevant)
-    lp_gesamt_vor_sem = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_wahlvertiefung_ID, user_id, current_semester)[0][0]) + \
+    lp_gesamt_vor_sem = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_id, user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_WPF_Vertiefung_Vor(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_WPF_andere_Vor(user_id, current_semester)[0][0]) +\
                             int(dbase.get_Summe_Grundlagenpraktika_Vor(user_id, current_semester)[0][0]) + \
@@ -433,7 +440,7 @@ def modulauswahl():
     lp_gesamt_alle_semester = int(dbase.get_Gesamtsumme_LP(user_id)[0][0])
 
     #Semesterwochenstunden
-    semesterwochenstunden = int(dbase.get_Summe_Pflicht_Vertiefung_sws(user_wahlvertiefung_ID, user_id, current_semester)[0][0]) + \
+    semesterwochenstunden = int(dbase.get_Summe_Pflicht_Vertiefung_sws(user_id, user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_WPF_Vertiefung_sws(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_WPF_andere_sws(user_id, current_semester)[0][0]) +\
                             int(dbase.get_Summe_Grundlagenpraktika_sws(user_id, current_semester)[0][0]) + \
@@ -750,7 +757,7 @@ def modulauswahl():
                                    user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
                                    semester_anzahl = semester_anzahl
                                    )
-        elif user_wahlvertiefung_ID == 2 or user_wahlvertiefung_ID == 4:
+        elif user_wahlvertiefung_ID == 2:
             return render_template("modulauswahl.html",
                                    module1=module1,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
@@ -779,6 +786,34 @@ def modulauswahl():
                                    current_semester = current_semester,
                                    user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
                                    semester_anzahl = semester_anzahl
+                                   )
+        elif user_wahlvertiefung_ID == 4:
+            return render_template("modulauswahl.html",
+                                   module1=module1,
+                                   pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
+                                   pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
+                                   pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
+                                   zweites_Grundlagenmodul=zweites_Grundlagenmodul,
+                                   zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
+                                   empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
+                                   nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
+                                   user_pflicht_lp_ist=user_pflicht_lp_ist,
+                                   user_pflicht_lp_soll=user_pflicht_lp_soll,
+                                   user_weitere_einfuehrung_LP_ist=user_weitere_einfuehrung_LP_ist,
+                                   user_weitere_einfuehrung_LP_soll=user_weitere_einfuehrung_LP_soll,
+                                   user_wahlpflicht_LP_ist=user_wahlpflicht_LP_ist,
+                                   user_wahlpflicht_andere_LP_ist=user_wahlpflicht_andere_LP_ist,
+                                   user_min_wahlpflicht_LP=user_min_wahlpflicht_LP,
+                                   user_max_wahlpflicht_LP=user_max_wahlpflicht_LP,
+                                   user_min_wahlpflicht_andere_LP=user_min_wahlpflicht_andere_LP,
+                                   user_max_wahlpflicht_andere_LP=user_max_wahlpflicht_andere_LP,
+                                   lp_gesamt=lp_gesamt,
+                                   semesterwochenstunden=semesterwochenstunden,
+                                   temp_list=temp_list,
+                                   lp_gesamt_alle_semester=lp_gesamt_alle_semester,
+                                   current_semester=current_semester,
+                                   user_wahlpflicht_LP_ist_summe=user_wahlpflicht_LP_ist_summe,
+                                   semester_anzahl=semester_anzahl
                                    )
 
 
@@ -816,7 +851,7 @@ def modulauswahl():
                                user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
                                semester_anzahl = semester_anzahl
                                )
-    elif user_wahlvertiefung_ID == 2 or user_wahlvertiefung_ID == 4:
+    elif user_wahlvertiefung_ID == 2:
         return render_template("modulauswahl.html",
                                module1=module1,
                                pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
@@ -846,6 +881,34 @@ def modulauswahl():
                                user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
                                semester_anzahl = semester_anzahl
                                )
+    elif user_wahlvertiefung_ID == 4:
+            return render_template("modulauswahl.html",
+                                   module1=module1,
+                                   pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
+                                   pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
+                                   pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
+                                   zweites_Grundlagenmodul=zweites_Grundlagenmodul,
+                                   zweites_Grundlagenmodul_nicht_empfohlen=zweites_Grundlagenmodul_nicht_empfohlen,
+                                   empfohlene_wahlpflichtkurse=empfohlene_wahlpflichtkurse,
+                                   nichtempfohlene_wahlpflichtkurse=nichtempfohlene_wahlpflichtkurse,
+                                   user_pflicht_lp_ist=user_pflicht_lp_ist,
+                                   user_pflicht_lp_soll=user_pflicht_lp_soll,
+                                   user_weitere_einfuehrung_LP_ist=user_weitere_einfuehrung_LP_ist,
+                                   user_weitere_einfuehrung_LP_soll=user_weitere_einfuehrung_LP_soll,
+                                   user_wahlpflicht_LP_ist=user_wahlpflicht_LP_ist,
+                                   user_wahlpflicht_andere_LP_ist=user_wahlpflicht_andere_LP_ist,
+                                   user_min_wahlpflicht_LP=user_min_wahlpflicht_LP,
+                                   user_max_wahlpflicht_LP=user_max_wahlpflicht_LP,
+                                   user_min_wahlpflicht_andere_LP=user_min_wahlpflicht_andere_LP,
+                                   user_max_wahlpflicht_andere_LP=user_max_wahlpflicht_andere_LP,
+                                   lp_gesamt=lp_gesamt,
+                                   semesterwochenstunden=semesterwochenstunden,
+                                   temp_list=temp_list,
+                                   lp_gesamt_alle_semester=lp_gesamt_alle_semester,
+                                   current_semester=current_semester,
+                                   user_wahlpflicht_LP_ist_summe=user_wahlpflicht_LP_ist_summe,
+                                   semester_anzahl=semester_anzahl
+                                   )
 
 @app.route('/logout')
 def logout():

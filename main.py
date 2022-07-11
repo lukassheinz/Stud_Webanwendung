@@ -14,22 +14,27 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
 
 
 app.config['SECRET_KEY'] = 'xxxxxxxxxxxxxxxxx!'
-admin = Admin(app, template_mode='bootstrap3', name='Verwaltung')
+admin = Admin(app, template_mode='bootstrap4', name='Verwaltung')
 bootstrap = Bootstrap(app)
 
 
-class SecureModelView(ModelView):
+class SecureModelViewModul(ModelView):
     # can_delete = False  # disable model deletion
     page_size = 100  # the number of entries to display on the list view
     #create_modal = True
     #edit_modal = True
+
+    edit_template = 'modul_edit.html'
+    create_template = 'modul_create.html'
+
+    form_excluded_columns = ['modulvertiefung']
 
     form_choices = {
         ####### Für Module
@@ -37,7 +42,30 @@ class SecureModelView(ModelView):
                                 ('Grundlagenpraktikum', 'Grundlagenpraktikum')],
         'empfohlen_ab': [('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')],
         'angebotshaeufigkeit': [('Wintersemester', 'Wintersemester'), ('Sommersemester', 'Sommersemester'),
-                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')],
+                                ('Wintersemester, Sommersemester', 'Wintersemester, Sommersemester')]
+    }
+
+    def is_accessible(self):
+        if "logged_in" in session:
+            return True
+        else:
+            abort(403)
+
+    def get_save_return_url(self, model, is_created=False):
+        return url_for('Vertiefung.create_view')
+
+class SecureModelViewBenutzer(ModelView):
+    # can_delete = False  # disable model deletion
+    page_size = 100  # the number of entries to display on the list view
+    #create_modal = True
+    #edit_modal = True
+
+    edit_template = 'benutzer_edit.html'
+    create_template = 'benutzer_create.html'
+
+
+
+    form_choices = {
         'wahlvertiefung_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
                               ('3', 'Complex and Intelligent Software Systems'), ('4', 'Medizinische Informatik')],
         'wahlvertiefung2_ID': [('1', 'Embedded Systems'), ('2', 'Visual Computing'),
@@ -51,6 +79,49 @@ class SecureModelView(ModelView):
         else:
             abort(403)
 
+    def get_save_return_url(self, model, is_created=False):
+        return url_for('Modul.create_view')
+
+
+class SecureModelViewVoraussetzung(ModelView):
+    # can_delete = False  # disable model deletion
+    page_size = 100  # the number of entries to display on the list view
+    #create_modal = True
+    #edit_modal = True
+
+    #edit_template = 'benutzer_edit.html'
+    create_template = 'Voraussetzung_create.html'
+
+    def is_accessible(self):
+        if "logged_in" in session:
+            return True
+        else:
+            abort(403)
+
+    def get_save_return_url(self, model, is_created=False):
+        return url_for('admin.index')
+
+class SecureModelViewVertiefung(ModelView):
+    # can_delete = False  # disable model deletion
+    page_size = 100  # the number of entries to display on the list view
+    #create_modal = True
+    #edit_modal = True
+
+    #edit_template = 'benutzer_edit.html'
+    create_template = 'vertiefung_create.html'
+
+
+    def is_accessible(self):
+        if "logged_in" in session:
+            return True
+        else:
+            abort(403)
+
+    def get_save_return_url(self, model, is_created=False):
+        return url_for('Voraussetzung.create_view')
+
+
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -59,9 +130,10 @@ login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(matrikelnummer):
-    return benutzer.query.get(int(matrikelnummer))
+    return Studierende.query.get(int(matrikelnummer))
 
-class benutzer(UserMixin, db.Model):
+class Studierende(UserMixin, db.Model):
+    __tablename__ = 'benutzer'
     ID = db.Column(db.Integer, primary_key=True)
     matrikelnummer = db.Column(db.Integer)
     vorname = db.Column(db.String(50))
@@ -73,7 +145,8 @@ class benutzer(UserMixin, db.Model):
     immatrikulationsjahr = db.Column(db.String(4))
     wahlvertiefung2_ID = db.Column(db.Integer)
 
-class modul(UserMixin, db.Model):
+class Modul(UserMixin, db.Model):
+    __tablename__ = 'modul'
     ID = db.Column(db.Integer, primary_key=True)
     nummer = db.Column(db.String(50))
     modultitel = db.Column(db.String(50))
@@ -83,6 +156,47 @@ class modul(UserMixin, db.Model):
     leistungspunkte = db.Column(db.Integer)
     semesterwochenstunden = db.Column(db.Integer)
     voraussetzungslp = db.Column(db.Integer)
+    modulvertiefung = db.relationship('Modulvertiefung', backref='modul')
+    def __str__(self):
+        return self.modultitel
+
+class Vertiefung(UserMixin, db.Model):
+    __tablename__ = 'vertiefung'
+    ID = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    prof_ID = db.Column(db.Integer)
+    pflicht_LP = db.Column(db.Integer)
+    grundlagenpraktikum_LP = db.Column(db.Integer)
+    weitere_einfuehrung_LP = db.Column(db.Integer)
+    min_wahlpflicht_vertiefung_LP = db.Column(db.Integer)
+    max_wahlpflicht_vertiefung_LP = db.Column(db.Integer)
+    min_wahlpflicht_andere_LP = db.Column(db.Integer)
+    max_wahlpflicht_andere_LP = db.Column(db.Integer)
+    wahlpflicht_LP = db.Column(db.Integer)
+    modulvertiefung = db.relationship('Modulvertiefung', backref='vertiefung')
+    def __str__(self):
+        return self.name
+
+class Modulvertiefung(UserMixin, db.Model):
+    __tablename__ = 'vertiefung_modul'
+    ID = db.Column(db.Integer, primary_key=True)
+    vertiefung_ID = db.Column(db.Integer, db.ForeignKey('vertiefung.ID'))
+    modul_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
+    zuordnung = db.Column(db.Enum('erlaubt_in', 'gehoert_zu', 'Pflicht_in'))
+
+class Modulvoraussetzung(UserMixin, db.Model):
+    __tablename__ = 'voraussetzung_modul'
+    ID = db.Column(db.Integer, primary_key=True)
+    modulvoraussetzung_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
+    modul_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
+    modul = db.relationship('Modul',  foreign_keys=modul_ID) #backref='modulvoraussetzung_modul',
+    modulvoraussetzung = db.relationship('Modul', foreign_keys=modulvoraussetzung_ID)  #, backref='modul_voraussetzungmodul'
+
+
+admin.add_view((SecureModelViewModul(Modul, db.session, endpoint='Modul')))
+admin.add_view((SecureModelViewVertiefung(Modulvertiefung, db.session, endpoint='Vertiefung')))
+admin.add_view((SecureModelViewVoraussetzung(Modulvoraussetzung, db.session, endpoint='Voraussetzung')))
+admin.add_view((SecureModelViewBenutzer(Studierende, db.session, endpoint='Benutzer')))
 
 
 
@@ -234,7 +348,7 @@ def index():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = benutzer.query.filter_by(matrikelnummer=form.username.data).first()
+        user = Studierende.query.filter_by(matrikelnummer=form.username.data).first()
         if user:
             if check_password_hash(user.passwort, form.password.data):
                 session["matrikelnummer"] = request.form["username"]
@@ -252,7 +366,7 @@ def signup():
     form = RegisterForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='sha256')
-        new_user = benutzer(matrikelnummer=form.username.data, vorname=form.vorname.data, nachname=form.nachname.data, email=form.email.data, passwort=hashed_password, wahlvertiefung_ID=form.erste_Vertiefung.data, wahlvertiefung2_ID=form.zweite_Vertiefung.data, immatrikulationssemester=form.immatrikulationssemester.data, immatrikulationsjahr=form.immatrikulationsjahr.data)
+        new_user = Studierende(matrikelnummer=form.username.data, vorname=form.vorname.data, nachname=form.nachname.data, email=form.email.data, passwort=hashed_password, wahlvertiefung_ID=form.erste_Vertiefung.data, wahlvertiefung2_ID=form.zweite_Vertiefung.data, immatrikulationssemester=form.immatrikulationssemester.data, immatrikulationsjahr=form.immatrikulationsjahr.data)
         db.session.add(new_user)
         db.session.commit()
 
@@ -277,8 +391,6 @@ def proflogin():
 
 
 
-admin.add_view((SecureModelView( modul, db.session)))
-admin.add_view((SecureModelView( benutzer, db.session)))
 
 
 

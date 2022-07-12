@@ -961,3 +961,33 @@ class Database:
                     """
         parameter = (user_id, modul_id)
         return self.engine.execute(sql_query, parameter).fetchall()
+
+    # SWAP-MODULE
+
+    def swap_module(self, benutzer_id, modul1_id, modul2_id):
+        sql_query_select = """
+        SELECT semester
+        FROM benutzer_modul
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+
+        sql_query_update = """
+        UPDATE benutzer_modul
+        SET semester = %s
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+
+        parameter = (benutzer_id, modul1_id)
+        ergebnis_1 = self.engine.execute(sql_query_select, parameter).fetchall()
+        semester_1 = ergebnis_1[0][0]
+
+        parameter = (benutzer_id, modul2_id)
+        ergebnis_2 = self.engine.execute(sql_query_select, parameter).fetchall()
+        semester_2 = ergebnis_2[0][0]
+
+        parameter = (semester_2, benutzer_id, modul1_id)
+        self.engine.execute(sql_query_update, parameter).fetchall()
+
+        parameter = (semester_1, benutzer_id, modul2_id)
+        self.engine.execute(sql_query_update, parameter).fetchall()
+

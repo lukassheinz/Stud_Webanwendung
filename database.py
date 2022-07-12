@@ -991,3 +991,12 @@ class Database:
         parameter = (semester_1, benutzer_id, modul2_id)
         self.engine.execute(sql_query_update, parameter).fetchall()
 
+    def update_semester(self, semester, benutzer_id, modul_id):
+        sql_query = """
+        UPDATE benutzer_modul
+        SET semester = %s
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+        parameter = (semester, benutzer_id, modul_id)
+        return self.engine.execute(sql_query, parameter).fetchall()
+

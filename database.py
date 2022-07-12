@@ -908,6 +908,14 @@ class Database:
         parameter = (str(benutzer_ID), semester)
         return self.engine.execute(sql_query, parameter).fetchall()
 
+    def get_alle_gewaehlte_module(self, benutzer_ID):
+        return self.engine.execute("SELECT modul_ID FROM benutzer_modul WHERE benutzer_ID = " + str(benutzer_ID)).fetchall()
+
+    def get_gewaehltes_modul(self, benutzer_ID, modul_id):
+        sql_query = "SELECT * FROM benutzer_modul WHERE benutzer_ID = %s and modul_ID = %s"
+        parameter = (str(benutzer_ID), modul_id)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
     def delete_belegtes_modul(self, ID):
         return self.engine.execute("DELETE FROM benutzer_modul WHERE ID = " + str(ID))
 
@@ -961,3 +969,50 @@ class Database:
                     """
         parameter = (user_id, modul_id)
         return self.engine.execute(sql_query, parameter).fetchall()
+
+    def get_semester_of_module(self, user_id, modul_id):
+        sql_query = """
+                    SELECT semester
+                    FROM benutzer_modul
+                    where benutzer_ID = %s and modul_ID = %s"""
+        parameter = (user_id, modul_id)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+ # SWAP-MODULE
+
+    def swap_module(self, benutzer_id, modul1_id, modul2_id):
+        sql_query_select = """
+        SELECT semester
+        FROM benutzer_modul
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+
+        sql_query_update = """
+        UPDATE benutzer_modul
+        SET semester = %s
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+
+        parameter = (benutzer_id, modul1_id)
+        ergebnis_1 = self.engine.execute(sql_query_select, parameter).fetchall()
+        semester_1 = ergebnis_1[0][0]
+
+        parameter = (benutzer_id, modul2_id)
+        ergebnis_2 = self.engine.execute(sql_query_select, parameter).fetchall()
+        semester_2 = ergebnis_2[0][0]
+
+        parameter = (semester_2, benutzer_id, modul1_id)
+        self.engine.execute(sql_query_update, parameter).fetchall()
+
+        parameter = (semester_1, benutzer_id, modul2_id)
+        self.engine.execute(sql_query_update, parameter).fetchall()
+
+
+    def update_semester(self, semester, benutzer_id, modul_id):
+        sql_query = """
+        UPDATE benutzer_modul
+        SET semester = %s
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+        parameter = (semester, benutzer_id, modul_id)
+        return self.engine.execute(sql_query, parameter)

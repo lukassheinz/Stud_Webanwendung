@@ -1,7 +1,7 @@
 {% extends "base_modulauswahl.html" %}
 
 {% block title %}
-Verlaufsplan
+Swap
 {% endblock %}
 
 {% block head %}
@@ -9,7 +9,7 @@ Verlaufsplan
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
     <script src='/static/js/jquery.min.js'></script>
     <script src='/static/js/jquery.steps.min.js'></script>
-    <script src="/static/js/verlaufsplan.js"></script>
+    <script src="/static/js/swap.js"></script>
 
     <style>
 
@@ -62,14 +62,11 @@ Verlaufsplan
             cursor: pointer;
         }
 
-        .abgeschlossen{
+        .swap-chosen{
             color: white;
             background: #030385;
         }
 
-        .belegt{
-
-        }
 
         figcaption{
             margin-top: 5px;
@@ -109,17 +106,24 @@ Verlaufsplan
 {% endblock %}
 
 {% block content %}
-<h2>Dein Studienverlaufsplan</h2>
+<h2>Module tauschen</h2>
 <div class="container">
     <figure>
     <div class="flex-container">
         {% for sem in range(1, semester_anzahl + 1) %}
         <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
             {% for modul in module_for_jeweiliges_semester[sem - 1] %}
-            <div class="flex-item modul {{modul[10]}}" value="{{modul[0]}}">
-                <p>{{modul[2]}} </p>
-                <p>LP: {{modul[6]}}, SWS: {{modul[7]}} </p>
-            </div>
+                {% if modul[0]|string is in swap_module %}
+                    <div class="flex-item modul swap-chosen" value="{{modul[0]}}">
+                        <p>{{modul[2]}} </p>
+                        <p>LP: {{modul[6]}}, SWS: {{modul[7]}} </p>
+                    </div>
+                {% else %}
+                    <div class="flex-item modul" value="{{modul[0]}}">
+                        <p>{{modul[2]}} </p>
+                        <p>LP: {{modul[6]}}, SWS: {{modul[7]}} </p>
+                    </div>
+                {% endif %}
             {% endfor %}
             <div class ="semester-counter-container">
                 <div class = "semester-counter">
@@ -132,12 +136,11 @@ Verlaufsplan
     </div>
         <figcaption>
             <p class="white-box"> </p>
-            <p class="white-box-text"> = belegt </p>
+            <p class="white-box-text"> = nicht ausgewählt zum tauschen </p>
             <p class="blue-box"> </p>
-            <p class="blue-box-text"> = abgeschlossen </p>
+            <p class="blue-box-text"> = ausgewählt zum tauschen </p>
         </figcaption>
-        <a class="btn btn-warning" href="/modulauswahl" role="button" style="float: right; margin-top: 10px;">Bearbeiten</a>
-        <a class="btn btn-warning" href="/swap" role="button" style="float: right; margin-top: 10px; margin-right: 10px;">Module tauschen</a>
+        <a class="btn btn-warning" href="/verlaufsplan" role="button" style="float: right; margin-top: 10px; margin-right: 10px;">Zurück</a>
     </figure>
 </div>
 

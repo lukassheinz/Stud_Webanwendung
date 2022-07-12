@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -353,6 +353,7 @@ def login():
             if check_password_hash(user.passwort, form.password.data):
                 session["matrikelnummer"] = request.form["username"]
                 session["passwort"] = user.passwort
+                session["swap_module"] = []
                 login_user(user, remember=form.remember.data)
                 return redirect(url_for('modulauswahl'))
 
@@ -406,19 +407,14 @@ def verlaufsplan():
     semester_modul_liste = []
 
     if request.is_json:
+
         # von belegt auf abgeschlossen ändern
-
-        #Prüfen, ob Voraussetzung abgeschlossen worden ist
-
         if request.args.get("value") and "belegt" in request.args.get("class"):
             temp_module_id = request.args.get("value")
             semester_von_modul = request.args.get("semester")
             dbase.update_benutzer_modul(user_id, temp_module_id, semester_von_modul)
 
         # von abgeschlossen auf belegt ändern
-
-        #Prüfen, ob Modul Voraussetzung hat, die abgeschlossen worden ist
-
         elif request.args.get("value") and "abgeschlossen" in request.args.get("class"):
             temp_module_id = request.args.get("value")
             semester_von_modul = request.args.get("semester")
@@ -464,6 +460,191 @@ def verlaufsplan():
 
 
 
+@app.route("/swap", methods=["GET"])
+@login_required
+def swap():
+    user_matrikelnummer = session["matrikelnummer"]
+    user_passwort_hash = session["passwort"]
+    user = dbase.get_user(user_matrikelnummer, user_passwort_hash)
+    user_id = session["user_ID"] = user[0][0]
+    semester_anzahl = user[0][11]
+    semester_modul_liste = []
+    failed = 0
+
+
+    # Gewählte Module bekommen
+    for i in range(1, semester_anzahl + 1):
+        semester_modul_liste.append(dbase.get_gewaehlte_module(user_id, i))
+    module_for_jeweiliges_semester = []
+    # Get gewählte Module
+    for i in range(1, semester_anzahl + 1):
+        module_for_jeweiliges_semester.append(dbase.get_ausgewählte_module_infos(user_id, i))
+
+    # Für jeweiliges Semester LP und SWS bekommen
+    semester_lp_liste = []
+    semester_sws_liste = []
+    for i in range(1, semester_anzahl + 1):
+        lp_gesamt = int(dbase.get_Summe_Pflicht_Vertiefung(user_id, user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_WPF_Vertiefung(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_WPF_andere(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_Grundlagenpraktika(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_weitere_Einfuehrung(user_id, i)[0][0])
+
+        semesterwochenstunden = int(dbase.get_Summe_Pflicht_Vertiefung_sws(user_id, user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_WPF_Vertiefung_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_WPF_andere_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_Grundlagenpraktika_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_weitere_Einfuehrung_sws(user_id, i)[0][0])
+
+        semester_lp_liste.append(lp_gesamt)
+        semester_sws_liste.append(semesterwochenstunden)
+
+    if request.is_json:
+        if request.args.get("value"):
+
+            temp_module_id = request.args.get("value")
+
+            if str(temp_module_id) in session["swap_module"]:
+                for i in session["swap_module"]:
+                    if str(temp_module_id) == i:
+                        session["swap_module"].remove(i)
+            elif str(temp_module_id) not in session["swap_module"]:
+                if len(session["swap_module"]) == 2:
+                    flash("Du hast bereits 2 Module ausgewählt.")
+                    return redirect(request.url)
+                session["swap_module"].append(temp_module_id)
+
+            if len(session["swap_module"]) == 2:
+                swap_modul_1 = dbase.get_gewaehltes_modul(user_id, str(session["swap_module"][0]))
+                swap_modul_2 = dbase.get_gewaehltes_modul(user_id, str(session["swap_module"][1]))
+                swap_modul_1_info = dbase.get_single_module(str(session["swap_module"][0]))
+                swap_modul_2_info = dbase.get_single_module(str(session["swap_module"][1]))
+                semester_swap_modul_1 = swap_modul_1[0][2]
+                semester_swap_modul_2 = swap_modul_2[0][2]
+
+                if(int(semester_swap_modul_1) == int(semester_swap_modul_2)):
+                    flash("Beide Module liegen im gleichen Semester")
+                    return redirect("")
+
+                if (swap_modul_1_info[0][5] != swap_modul_2_info[0][5]): # WiSe != SoSe
+                    if (swap_modul_1_info[0][5] == "Wintersemester, Sommersemester") or (swap_modul_2_info[0][5] == "Wintersemester, Sommersemester"):
+                        pass
+                    else:
+                        flash("Die Module werden ausschließlich in unterschiedlichen Semestern (SoSe/WiSe) angeboten.")
+                        return redirect("")
+
+                # Voraussetzungen prüfen für Modul swap_modul_1 in semester von swap_modul_2
+                id_list_temp_vor_sem = dbase.get_vorherige_belegte_modul_ids(user_id, semester_swap_modul_2)
+                id_list_temp_vor_sem_temp = []
+                unbelegte_vorausgesetzte_kurse = []
+                for i in id_list_temp_vor_sem:
+                    id_list_temp_vor_sem_temp.append(i[0])  # bereits belegte module (id)
+                increment = 0
+                kurs_voraussetzung = dbase.get_modul_voraussetzungen(str(session["swap_module"][0]))  # Voraussetzungen für idModule
+                for v in kurs_voraussetzung:
+                    if str(session["swap_module"][0]) == str(v[2]) and int(
+                            v[1]) not in id_list_temp_vor_sem_temp:  # wenn idModule == modulID in voraussetzung_module
+                        unbelegte_vorausgesetzte_kurse.append(str(v[1]))  # Vorausgesetzter kurs und noch nicht belegt
+                        if unbelegte_vorausgesetzte_kurse:
+                            for unbelegt in unbelegte_vorausgesetzte_kurse:
+                                modul_from_db = dbase.get_single_module(unbelegt)
+                                flash("Das Modul >>" + modul_from_db[0][2] + "<< wird als Voraussetzung für das Modul >>" + swap_modul_1_info[0][2] + "<< benötigt.")
+                            increment = increment + 1
+                            failed = failed + 1
+                if increment > 0:
+                    return redirect("")
+
+                # Voraussetzungen prüfen für Modul swap_modul_2 in semester von swap_modul_1
+                id_list_temp_vor_sem = dbase.get_vorherige_belegte_modul_ids(user_id, semester_swap_modul_1)
+                id_list_temp_vor_sem_temp = []
+                unbelegte_vorausgesetzte_kurse = []
+                for i in id_list_temp_vor_sem:
+                    id_list_temp_vor_sem_temp.append(i[0])  # bereits belegte module (id)
+                increment = 0
+                kurs_voraussetzung = dbase.get_modul_voraussetzungen(str(session["swap_module"][1]))  # Voraussetzungen für idModule
+                for v in kurs_voraussetzung:
+                    if str(session["swap_module"][1]) == str(v[2]) and int(
+                            v[1]) not in id_list_temp_vor_sem_temp:  # wenn idModule == modulID in voraussetzung_module
+                        unbelegte_vorausgesetzte_kurse.append(str(v[1]))  # Vorausgesetzter kurs und noch nicht belegt
+                        if unbelegte_vorausgesetzte_kurse:
+                            for unbelegt in unbelegte_vorausgesetzte_kurse:
+                                modul_from_db = dbase.get_single_module(unbelegt)
+                                flash("Das Modul >>" + modul_from_db[0][2] + "<< wird als Voraussetzung für das Modul >>" + swap_modul_2_info[0][2] + "<< benötigt.")
+                            increment = increment + 1
+                            failed = failed + 1
+                if increment > 0:
+                    return redirect("")
+
+                # Voraussetzungen nachher prüfen für Modul swap_modul_1 in semester von swap_modul_2
+
+                gewählte_module = dbase.get_alle_gewaehlte_module(user_id)
+                gewählte_module_liste = []
+
+                temp_m = []
+                increment = 0
+
+                for i in gewählte_module:
+                    gewählte_module_liste.append(i[0])
+                modulvoraussetzungs_IDs = dbase.get_modul_voraussetzungen_nach(str(session["swap_module"][0]))
+                for v in modulvoraussetzungs_IDs:
+                    if v[2] in gewählte_module_liste:
+                        list_semester_voraussetzungen = []
+                        temp_m.append(v[2])
+                        for i in temp_m:
+                            l = dbase.get_semester_of_module(user_id, i)
+                            if l:
+                                list_semester_voraussetzungen.append(l[0][0])
+
+                        for i in list_semester_voraussetzungen:
+                            if semester_swap_modul_2 > i:
+                                vor_modul = dbase.get_single_module(v[2])
+                                flash("Das Modul >>" + vor_modul[0][2] + "<< benötigt das Modul >>" + swap_modul_1_info[0][2] + "<< als Voraussetzung.")
+                                increment = increment + 1
+                                failed = failed + 1
+                if increment > 0:
+                    return redirect("")
+
+                # Voraussetzungen nachher prüfen für Modul swap_modul_2 in semester von swap_modul_1
+                temp_m = []
+                increment = 0
+
+                for i in gewählte_module:
+                    gewählte_module_liste.append(i[0])
+                modulvoraussetzungs_IDs = dbase.get_modul_voraussetzungen_nach(str(session["swap_module"][1]))
+                for v in modulvoraussetzungs_IDs:
+                    if v[2] in gewählte_module_liste:
+                        list_semester_voraussetzungen = []
+                        temp_m.append(v[2])
+                        for i in temp_m:
+                            l = dbase.get_semester_of_module(user_id, i)
+                            if l:
+                                list_semester_voraussetzungen.append(l[0][0])
+
+                        for i in list_semester_voraussetzungen:
+                            if semester_swap_modul_1 > i:
+                                vor_modul = dbase.get_single_module(v[2])
+                                flash("Das Modul >>" + vor_modul[0][2] + "<< benötigt das Modul >>" + swap_modul_2_info[0][2] + "<< als Voraussetzung.")
+                                increment = increment + 1
+                                failed = failed + 1
+                if increment > 0:
+                    return redirect("")
+
+                if failed is 0:
+                    swap_mod_1 = swap_modul_1[0][2]
+                    swap_mod_2 = swap_modul_2[0][2]
+                    dbase.update_semester(swap_mod_2, user_id, swap_modul_1[0][4])
+                    dbase.update_semester(swap_mod_1, user_id, swap_modul_2[0][4])
+                    session["swap_module"].clear()
+
+    return render_template("swap.html",
+                           semester_anzahl=semester_anzahl,
+                           semester_modul_liste=semester_modul_liste,
+                           module_for_jeweiliges_semester=module_for_jeweiliges_semester,
+                           semester_lp_liste=semester_lp_liste,
+                           semester_sws_liste=semester_sws_liste,
+                           swap_module=session["swap_module"],)
+
+
 @app.route("/modulauswahl", methods=["GET"])
 @login_required
 def modulauswahl():
@@ -507,10 +688,8 @@ def modulauswahl():
 
     #Pflichtmodule Leistungspunkte
     sum_pflicht_vertiefung_lp = dbase.get_Summe_Pflicht_Vertiefung_Gesamt(user_id, user_id)
-    print("SUMAOWIDJ", sum_pflicht_vertiefung_lp)
     user_pflicht_lp_soll = temp[0][3]
     user_pflicht_lp_ist = int(sum_pflicht_vertiefung_lp[0][0])
-    print("IAWNDAWKJND", user_pflicht_lp_ist)
 
     #Weitere Einführung Leistungspunkte
     sum_weitere_einfuherung_lp = dbase.get_Summe_weitere_Einfuehrung_Gesamt(user_id)
@@ -540,7 +719,6 @@ def modulauswahl():
                             int(dbase.get_Summe_WPF_andere(user_id, current_semester)[0][0]) +\
                             int(dbase.get_Summe_Grundlagenpraktika(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_weitere_Einfuehrung(user_id, current_semester)[0][0])
-    print("LP_GESSAMT:", lp_gesamt) #empfohlene Wahlpflichkturse aus anderen Vertiefungen irgendwas mit weitere wpm nur bei geraden?
 
     #LP-Gesamt in den vorherigen Semestern (Für Bachelorarbeit relevant)
     lp_gesamt_vor_sem = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_id, user_id, current_semester)[0][0]) + \

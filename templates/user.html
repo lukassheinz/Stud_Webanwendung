@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+	<h2> Profil </h2>
+	<br/>
+
+	<div class="card">
+  <div class="card-header">
+	  {{current_user.vorname}} {{ current_user.nachname}}
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">Überschrift X</h5>
+    <p class="card-text">
+		<strong>Matrikelnummer: </strong>{{ current_user.matrikelnummer}}<br/>
+		<strong>E-Mail: </strong>{{ current_user.email}}<br/>
+		<strong>Vertiefung1: </strong>{{ current_user.wahlvertiefung_ID}}<br/>
+		<strong>Vertiefung2: </strong>{{ current_user.wahlvertiefung2_ID}}<br/>
+
+	</p>
+	<a href="{{ url_for('index')}}" class="btn btn-secondary btn-sm">Home</a>
+	<a href="{{ url_for('update', ID=current_user.ID)}}" class="btn btn-secondary btn-sm">Update Profile</a>
+    <a href="{{ url_for('logout')}}" class="btn btn-secondary btn-sm">Logout</a>
+
+  </div>
+</div>
+
+
+
+
+	<br/><br/>
+
+
+
+{% endblock %}

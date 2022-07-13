@@ -2,7 +2,7 @@ import flask_login
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session, flash
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SelectField
+from wtforms import StringField, PasswordField, BooleanField, SelectField, SubmitField
 from wtforms.validators import InputRequired, Email, Length
 from database import Database
 from flask_sqlalchemy import SQLAlchemy
@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -338,6 +338,7 @@ class RegisterForm(FlaskForm):
     immatrikulationsjahr = StringField('Immatrikulationsjahr', validators=[InputRequired(), Length(min=4, max=4)])
     erste_Vertiefung = SelectField('Vertiefung 1', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
     zweite_Vertiefung = SelectField('Vertiefung 2', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
+    submit = SubmitField("Bearbeiten")
 
 @app.route('/', methods = ["GET", "POST"])
 def index():
@@ -649,7 +650,7 @@ def swap():
                 if increment > 0:
                     return redirect("")
 
-                if failed is 0:
+                if failed == 0:
                     swap_mod_1 = swap_modul_1[0][2]
                     swap_mod_2 = swap_modul_2[0][2]
                     dbase.update_semester(swap_mod_2, user_id, swap_modul_1[0][4])
@@ -1278,6 +1279,34 @@ def modulauswahl():
                                    user_wahlpflicht_LP_ist_summe=user_wahlpflicht_LP_ist_summe,
                                    semester_anzahl=semester_anzahl
                                    )
+
+@app.route('/update/<int:ID>', methods=['GET', 'POST'])
+@login_required
+def update(ID):
+    form = RegisterForm()
+    name_to_update = Studierende.query.get_or_404(ID)
+    if request.method == "POST":
+        name_to_update.vorname = request.form['vorname']
+        name_to_update.nachname = request.form['nachname']
+        name_to_update.email = request.form['email']
+        name_to_update.wahlvertiefung_ID = request.form['erste_Vertiefung']
+        name_to_update.wahlvertiefung2_ID = request.form['zweite_Vertiefung']
+        try:
+            db.session.commit()
+            flash("Profil erfolgreich geändert!")
+            return render_template("user.html", form=form, name_to_update=name_to_update, ID=ID)
+        except:
+            flash("Error! Ein Problem ist aufgetreten versuch es erneut")
+            return render_template("update.html", form=form, name_to_update=name_to_update, ID=ID)
+    else:
+        return render_template("update.html", form=form, name_to_update=name_to_update, ID=ID)
+
+@app.route('/user', methods=['GET', 'POST'])
+@login_required
+def user():
+    form = RegisterForm()
+    return render_template('user.html', form=form)
+
 
 @app.route('/logout')
 def logout():

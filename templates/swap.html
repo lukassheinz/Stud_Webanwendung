@@ -111,20 +111,36 @@ Swap
     <figure>
     <div class="flex-container">
         {% for sem in range(1, semester_anzahl + 1) %}
-        <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
-            {% for modul in module_for_jeweiliges_semester[sem - 1] %}
-                {% if modul[0]|string is in swap_module %}
+            {% if user_start_semester == "Wintersemester" %}
+                {% if sem % 2 == 0 %}
+                    <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+                    (SoSe)
+                {% else %}
+                    <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+                    (WiSe)
+                {% endif %}
+            {% elif user_start_semester == "Sommersemester" %}
+                 {% if sem % 2 == 0 %}
+                    <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+                    (WiSe)
+                 {% else %}
+                    <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+                    (SoSe)
+                 {% endif %}
+            {% endif %}
+        {% for modul in module_for_jeweiliges_semester[sem - 1] %}
+            {% if modul[0]|string is in swap_module %}
                     <div class="flex-item modul swap-chosen" value="{{modul[0]}}">
                         <p>{{modul[2]}} </p>
                         <p>LP: {{modul[6]}}, SWS: {{modul[7]}} </p>
                     </div>
-                {% else %}
+            {% else %}
                     <div class="flex-item modul" value="{{modul[0]}}">
                         <p>{{modul[2]}} </p>
                         <p>LP: {{modul[6]}}, SWS: {{modul[7]}} </p>
                     </div>
-                {% endif %}
-            {% endfor %}
+            {% endif %}
+        {% endfor %}
             <div class ="semester-counter-container">
                 <div class = "semester-counter">
                     <div class = "semester-lp">LP: {{semester_lp_liste[sem - 1]}}</div>

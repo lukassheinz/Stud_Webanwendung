@@ -404,6 +404,7 @@ def verlaufsplan():
     user_id = session["user_ID"] = user[0][0]
     semester_anzahl = user[0][11]
     user_wahlvertiefung_ID = user[0][5]
+    user_start_semester = user[0][6]
     semester_modul_liste = []
 
     if request.is_json:
@@ -456,7 +457,8 @@ def verlaufsplan():
                            semester_modul_liste = semester_modul_liste,
                            module_for_jeweiliges_semester = module_for_jeweiliges_semester,
                            semester_lp_liste = semester_lp_liste,
-                           semester_sws_liste = semester_sws_liste)
+                           semester_sws_liste = semester_sws_liste,
+                           user_start_semester = user_start_semester)
 
 
 
@@ -469,6 +471,7 @@ def swap():
     user_id = session["user_ID"] = user[0][0]
     semester_anzahl = user[0][11]
     semester_modul_liste = []
+    user_start_semester = user[0][6]
     failed = 0
 
 
@@ -521,6 +524,23 @@ def swap():
                 swap_modul_2_info = dbase.get_single_module(str(session["swap_module"][1]))
                 semester_swap_modul_1 = swap_modul_1[0][2]
                 semester_swap_modul_2 = swap_modul_2[0][2]
+
+                if swap_modul_1_info[0][2] == "Bachelorarbeit" or swap_modul_2_info[0][2] == "Bachelorarbeit":
+                    lp_gesamt_vor_sem_modul_1 = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_id, user_id, semester_swap_modul_1)[0][0]) + \
+                                                int(dbase.get_Summe_WPF_Vertiefung_Vor(user_id, semester_swap_modul_1)[0][0]) + \
+                                                int(dbase.get_Summe_WPF_andere_Vor(user_id, semester_swap_modul_1)[0][0]) + \
+                                                int(dbase.get_Summe_Grundlagenpraktika_Vor(user_id, semester_swap_modul_1)[0][0]) + \
+                                                int(dbase.get_Summe_weitere_Einfuehrung_Vor(user_id, semester_swap_modul_1)[0][0])
+
+                    lp_gesamt_vor_sem_modul_2 = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_id, user_id, semester_swap_modul_2)[0][0]) + \
+                                                int(dbase.get_Summe_WPF_Vertiefung_Vor(user_id, semester_swap_modul_2)[0][0]) + \
+                                                int(dbase.get_Summe_WPF_andere_Vor(user_id, semester_swap_modul_2)[0][0]) + \
+                                                int(dbase.get_Summe_Grundlagenpraktika_Vor(user_id, semester_swap_modul_2)[0][0]) + \
+                                                int(dbase.get_Summe_weitere_Einfuehrung_Vor(user_id, semester_swap_modul_2)[0][0])
+
+                    if lp_gesamt_vor_sem_modul_1 < 120 or lp_gesamt_vor_sem_modul_2 < 120:
+                        flash("Tauschen nicht möglich, da Voraussetzung für die Bachleorarbeit 120LP sind.")
+                        return redirect("")
 
                 if(int(semester_swap_modul_1) == int(semester_swap_modul_2)):
                     flash("Beide Module liegen im gleichen Semester")
@@ -642,7 +662,8 @@ def swap():
                            module_for_jeweiliges_semester=module_for_jeweiliges_semester,
                            semester_lp_liste=semester_lp_liste,
                            semester_sws_liste=semester_sws_liste,
-                           swap_module=session["swap_module"],)
+                           swap_module=session["swap_module"],
+                           user_start_semester = user_start_semester)
 
 
 @app.route("/modulauswahl", methods=["GET"])
@@ -835,7 +856,6 @@ def modulauswahl():
             empfohlene_wahlpflichtkurse = []
             nichtempfohlene_wahlpflichtkurse = []
 
-
     gewaehlte_module = dbase.get_gewaehlte_module(user_id, current_semester)
     benutzer_modul_ids = []
     gewaehlte_module_name = []
@@ -893,6 +913,8 @@ def modulauswahl():
 
             return render_template("modulauswahl.html",
                            module1=module1,
+                           user_start_semester=user_start_semester,
+                           user_wahlvertiefung_ID=user_wahlvertiefung_ID,
                            pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                            pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                            pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -1045,6 +1067,8 @@ def modulauswahl():
         if user_wahlvertiefung_ID == 1 or user_wahlvertiefung_ID == 3:
             return render_template("modulauswahl.html",
                                    module1=module1,
+                                   user_start_semester=user_start_semester,
+                                   user_wahlvertiefung_ID=user_wahlvertiefung_ID,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                    pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                    pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -1083,6 +1107,8 @@ def modulauswahl():
         elif user_wahlvertiefung_ID == 2:
             return render_template("modulauswahl.html",
                                    module1=module1,
+                                   user_start_semester=user_start_semester,
+                                   user_wahlvertiefung_ID=user_wahlvertiefung_ID,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                    pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                    pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -1117,6 +1143,8 @@ def modulauswahl():
         elif user_wahlvertiefung_ID == 4:
             return render_template("modulauswahl.html",
                                    module1=module1,
+                                   user_start_semester=user_start_semester,
+                                   user_wahlvertiefung_ID = user_wahlvertiefung_ID,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                    pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                    pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -1147,6 +1175,8 @@ def modulauswahl():
     if user_wahlvertiefung_ID == 1 or user_wahlvertiefung_ID == 3:
         return render_template("modulauswahl.html",
                                module1=module1,
+                               user_start_semester=user_start_semester,
+                               user_wahlvertiefung_ID = user_wahlvertiefung_ID,
                                pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -1185,6 +1215,8 @@ def modulauswahl():
     elif user_wahlvertiefung_ID == 2:
         return render_template("modulauswahl.html",
                                module1=module1,
+                               user_start_semester=user_start_semester,
+                               user_wahlvertiefung_ID = user_wahlvertiefung_ID,
                                pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -1219,6 +1251,8 @@ def modulauswahl():
     elif user_wahlvertiefung_ID == 4:
             return render_template("modulauswahl.html",
                                    module1=module1,
+                                   user_start_semester=user_start_semester,
+                                   user_wahlvertiefung_ID = user_wahlvertiefung_ID,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                    pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                    pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,

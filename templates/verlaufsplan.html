@@ -114,7 +114,23 @@ Verlaufsplan
     <figure>
     <div class="flex-container">
         {% for sem in range(1, semester_anzahl + 1) %}
-        <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+            {% if user_start_semester == "Wintersemester" %}
+                {% if sem % 2 == 0 %}
+                    <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+                    (SoSe)
+                {% else %}
+                    <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+                    (WiSe)
+                {% endif %}
+            {% elif user_start_semester == "Sommersemester" %}
+                 {% if sem % 2 == 0 %}
+                    <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+                    (WiSe)
+                 {% else %}
+                    <div class="flex-item semester" value="{{sem}}">{{sem}}. Semester
+                    (SoSe)
+                 {% endif %}
+            {% endif %}
             {% for modul in module_for_jeweiliges_semester[sem - 1] %}
             <div class="flex-item modul {{modul[10]}}" value="{{modul[0]}}">
                 <p>{{modul[2]}} </p>

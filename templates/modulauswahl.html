@@ -206,7 +206,19 @@ Modulauswahl
 <div class ="main-container">
     <figure>
     <div class = "veranstaltungen">
-    <h3>Verfügbare Kurse für das {{current_semester}}. Semester</h3>
+        {% if user_start_semester == "Wintersemester" %}
+            {% if current_semester % 2 == 0 %}
+                <h3>Verfügbare Kurse für das {{current_semester}}. Semester (SoSe)</h3>
+            {% else %}
+                <h3>Verfügbare Kurse für das {{current_semester}}. Semester (WiSe)</h3>
+            {% endif %}
+            {% elif user_start_semester == "Sommersemester" %}
+            {% if current_semester % 2 == 0 %}
+                <h3>Verfügbare Kurse für das {{current_semester}}. Semester (WiSe)</h3>
+            {% else %}
+                <h3>Verfügbare Kurse für das {{current_semester}}. Semester (SoSe)</h3>
+            {% endif %}
+        {% endif %}
     <h4>Pflichtbereich ({{user_pflicht_lp_ist}} / {{user_pflicht_lp_soll}})</h4>
     {% if module1 or pflichtkurse_nicht_empfohlen or pflichtkurse_vertiefung_empfohlen or pflichtkurse_vertiefung_nicht_empfohlen %}
     <ul class ="list-group list-group-hover list-group-empfohlen">
@@ -242,7 +254,7 @@ Modulauswahl
         {% endfor %}
     </ul>
     {% endif %}
-
+    {% if user_wahlvertiefung_ID == 1 or user_wahlvertiefung_ID == 3 %}
     <h4>Grundlagenpraktikum ({{user_grundlagenpraktikum_lp_ist}} / {{user_grundlagenpraktikum_lp_soll}})</h4>
     {% if grundlagenpraktikum or grundlagenpraktikum_nicht_empfohlen %}
     <ul class ="list-group list-group-hover list-group-empfohlen">
@@ -265,7 +277,7 @@ Modulauswahl
         {% endfor %}
     </ul>
     {% endif %}
-
+    {% endif %}
     <h4>zweites Grundlagenmodul ({{user_weitere_einfuehrung_LP_ist}} / {{user_weitere_einfuehrung_LP_soll}})</h4>
     {% if zweites_Grundlagenmodul or zweites_Grundlagenmodul_nicht_empfohlen%}
     <ul class ="list-group list-group-hover list-group-empfohlen">
@@ -287,8 +299,10 @@ Modulauswahl
     {% endif %}
 
     <h4>Wahlpflichtbereich ({{user_wahlpflicht_LP_ist_summe}} / {{user_max_wahlpflicht_LP}})</h4>
+        {% if user_wahlvertiefung_ID != 4 %}
     <h5>Leistungspunkte aus der eigenen Vertiefung ({{user_wahlpflicht_LP_ist}} / {{user_min_wahlpflicht_LP}} - {{user_max_wahlpflicht_LP}}) </h5>
     <h5>Leistungspunkte aus anderen Vertiefungen ({{user_wahlpflicht_andere_LP_ist}} / {{user_min_wahlpflicht_andere_LP}} - {{user_max_wahlpflicht_andere_LP}})</h5>
+        {% endif %}
     {% if empfohlene_wahlpflichtkurse or nichtempfohlene_wahlpflichtkurse or andere_empfohlene_wahlpflichtkurse or andere_nichtempfohlene_wahlpflichtkurse %}
     <ul class ="list-group list-group-hover list-group-empfohlen">
         <h6>empfohlene Wahlpflichtkurse</h6>
@@ -306,6 +320,7 @@ Modulauswahl
             </li>
         {% endfor %}
     </ul>
+        {% if user_wahlvertiefung_ID != 4 %}
     <ul class ="list-group list-group-hover list-group-empfohlen">
         <h6>empfohlene Wahlpflichkturse aus anderen Vertiefungen</h6>
         {% for item in andere_empfohlene_wahlpflichtkurse %}
@@ -354,6 +369,7 @@ Modulauswahl
                 </li>
             {% endfor %}
         </ul>
+        {% endif %}
     {% endif %}
 </div>
         <figcaption>
@@ -383,7 +399,19 @@ Modulauswahl
 <!--<button class="awdjk" onclick="addSemester()">Add Semester</button> -->
 <div class = belegte-module-container>
     <ul id = "belegte-module" class ="belegte-module list-group list-group-hover list-group-gewählt">
-    <h6>gewählte Module im {{current_semester}}. Semester</h6>
+        {% if user_start_semester == "Wintersemester" %}
+            {% if current_semester % 2 == 0 %}
+                <h6>gewählte Module im {{current_semester}}. Semester (SoSe)</h6>
+            {% else %}
+                <h6>gewählte Module im {{current_semester}}. Semester (WiSe)</h6>
+            {% endif %}
+            {% elif user_start_semester == "Sommersemester" %}
+            {% if current_semester % 2 == 0 %}
+                <h6>gewählte Module im {{current_semester}}. Semester (SoSe)</h6>
+            {% else %}
+                <h6>gewählte Module im {{current_semester}}. Semester (WiSe)</h6>
+            {% endif %}
+        {% endif %}
         {% for x in temp_list %}
             <li class = "semester-list" value = {{x[0][0][0]}} id = {{x[1]}}>
                     <!--ID: {{x[0][0][0]}}, -->Name: {{x[0][0][2]}}, Leistungspunkte: {{x[0][0][6]}}, Semesterwochenstunden: {{x[0][0][7]}}

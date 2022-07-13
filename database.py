@@ -423,7 +423,7 @@ class Database:
         JOIN benutzer_modul bm ON bm.modul_ID = m.ID
         JOIN benutzer b ON b.ID = bm.benutzer_ID
         JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
-        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "erlaubt_in";
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung IN ("empfohlen_in", "erlaubt_in", "nicht_empfohlen_in");
         """
         parameter = (benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
@@ -549,7 +549,7 @@ class Database:
         JOIN benutzer_modul bm ON bm.modul_ID = m.ID
         JOIN benutzer b ON b.ID = bm.benutzer_ID
         JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
-        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "erlaubt_in" AND semester= %s;
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung IN ("empfohlen_in", "erlaubt_in", "nicht_empfohlen_in") AND semester= %s;
         """
         parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()
@@ -712,7 +712,7 @@ class Database:
 
         # Module aus anderen Vertiefungen für Vertiefung x
 
-    def get_andereModule(self, start_semester, current_semester, vertiefung_id, benutzer_id):
+    def get_andereModule(self, start_semester, current_semester, zuordnung, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
@@ -729,16 +729,16 @@ class Database:
                         v.vertiefung_id as vertiefung_id, 
                         x.name as name 
                         from Modul m 
-                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'erlaubt_in' 
+                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = %s 
                         JOIN Vertiefung x on v.vertiefung_id = x.id 
                         WHERE m.empfohlen_ab <= %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Wahlpflicht'
                         and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
                         """
-        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
+        parameter = (zuordnung, str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
     # Module aus anderen Vertiefungen für Vertiefung x (nicht Empfohlene Module)
-    def get_nichtEmpfohleneAndereModule(self, start_semester, current_semester, vertiefung_id, benutzer_id):
+    def get_nichtEmpfohleneAndereModule(self, start_semester, current_semester, zuordnung, vertiefung_id, benutzer_id):
         if start_semester == 1:
             sem = '%So%' if current_semester % 2 == 0 else '%Wi%'
         else:
@@ -755,12 +755,12 @@ class Database:
                         v.vertiefung_id as vertiefung_id, 
                         x.name as name 
                         from Modul m 
-                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = 'erlaubt_in' 
+                        join vertiefung_modul v ON m.id = v.modul_id  AND v.zuordnung = %s 
                         JOIN Vertiefung x on v.vertiefung_id = x.id 
                         WHERE m.empfohlen_ab > %s AND m.angebotshaeufigkeit LIKE %s AND v.vertiefung_id = %s AND m.pflicht_wahlpflicht = 'Wahlpflicht'
                         and not exists (SELECT 1 FROM benutzer_modul WHERE modul_ID = m.id AND benutzer_ID = %s)
                         """
-        parameter = (str(current_semester), sem, vertiefung_id, benutzer_id)
+        parameter = (zuordnung, str(current_semester), sem, vertiefung_id, benutzer_id)
         return self.engine.execute(sql_query, parameter).fetchall()
 
         # Pflicht Module der jewiligen Vertiefung
@@ -908,6 +908,14 @@ class Database:
         parameter = (str(benutzer_ID), semester)
         return self.engine.execute(sql_query, parameter).fetchall()
 
+    def get_alle_gewaehlte_module(self, benutzer_ID):
+        return self.engine.execute("SELECT modul_ID FROM benutzer_modul WHERE benutzer_ID = " + str(benutzer_ID)).fetchall()
+
+    def get_gewaehltes_modul(self, benutzer_ID, modul_id):
+        sql_query = "SELECT * FROM benutzer_modul WHERE benutzer_ID = %s and modul_ID = %s"
+        parameter = (str(benutzer_ID), modul_id)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
     def delete_belegtes_modul(self, ID):
         return self.engine.execute("DELETE FROM benutzer_modul WHERE ID = " + str(ID))
 
@@ -961,3 +969,50 @@ class Database:
                     """
         parameter = (user_id, modul_id)
         return self.engine.execute(sql_query, parameter).fetchall()
+
+    def get_semester_of_module(self, user_id, modul_id):
+        sql_query = """
+                    SELECT semester
+                    FROM benutzer_modul
+                    where benutzer_ID = %s and modul_ID = %s"""
+        parameter = (user_id, modul_id)
+        return self.engine.execute(sql_query, parameter).fetchall()
+
+ # SWAP-MODULE
+
+    def swap_module(self, benutzer_id, modul1_id, modul2_id):
+        sql_query_select = """
+        SELECT semester
+        FROM benutzer_modul
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+
+        sql_query_update = """
+        UPDATE benutzer_modul
+        SET semester = %s
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+
+        parameter = (benutzer_id, modul1_id)
+        ergebnis_1 = self.engine.execute(sql_query_select, parameter).fetchall()
+        semester_1 = ergebnis_1[0][0]
+
+        parameter = (benutzer_id, modul2_id)
+        ergebnis_2 = self.engine.execute(sql_query_select, parameter).fetchall()
+        semester_2 = ergebnis_2[0][0]
+
+        parameter = (semester_2, benutzer_id, modul1_id)
+        self.engine.execute(sql_query_update, parameter).fetchall()
+
+        parameter = (semester_1, benutzer_id, modul2_id)
+        self.engine.execute(sql_query_update, parameter).fetchall()
+
+
+    def update_semester(self, semester, benutzer_id, modul_id):
+        sql_query = """
+        UPDATE benutzer_modul
+        SET semester = %s
+        WHERE benutzer_ID = %s AND modul_ID = %s
+        """
+        parameter = (semester, benutzer_id, modul_id)
+        return self.engine.execute(sql_query, parameter)

@@ -2,7 +2,7 @@ import flask_login
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session, flash
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SelectField
+from wtforms import StringField, PasswordField, BooleanField, SelectField, SubmitField
 from wtforms.validators import InputRequired, Email, Length
 from database import Database
 from flask_sqlalchemy import SQLAlchemy
@@ -338,6 +338,7 @@ class RegisterForm(FlaskForm):
     immatrikulationsjahr = StringField('Immatrikulationsjahr', validators=[InputRequired(), Length(min=4, max=4)])
     erste_Vertiefung = SelectField('Vertiefung 1', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
     zweite_Vertiefung = SelectField('Vertiefung 2', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
+    submit = SubmitField("Bearbeiten")
 
 @app.route('/', methods = ["GET", "POST"])
 def index():
@@ -353,6 +354,7 @@ def login():
             if check_password_hash(user.passwort, form.password.data):
                 session["matrikelnummer"] = request.form["username"]
                 session["passwort"] = user.passwort
+                session["swap_module"] = []
                 login_user(user, remember=form.remember.data)
                 return redirect(url_for('modulauswahl'))
 
@@ -403,22 +405,18 @@ def verlaufsplan():
     user_id = session["user_ID"] = user[0][0]
     semester_anzahl = user[0][11]
     user_wahlvertiefung_ID = user[0][5]
+    user_start_semester = user[0][6]
     semester_modul_liste = []
 
     if request.is_json:
+
         # von belegt auf abgeschlossen ändern
-
-        #Prüfen, ob Voraussetzung abgeschlossen worden ist
-
         if request.args.get("value") and "belegt" in request.args.get("class"):
             temp_module_id = request.args.get("value")
             semester_von_modul = request.args.get("semester")
             dbase.update_benutzer_modul(user_id, temp_module_id, semester_von_modul)
 
         # von abgeschlossen auf belegt ändern
-
-        #Prüfen, ob Modul Voraussetzung hat, die abgeschlossen worden ist
-
         elif request.args.get("value") and "abgeschlossen" in request.args.get("class"):
             temp_module_id = request.args.get("value")
             semester_von_modul = request.args.get("semester")
@@ -460,8 +458,213 @@ def verlaufsplan():
                            semester_modul_liste = semester_modul_liste,
                            module_for_jeweiliges_semester = module_for_jeweiliges_semester,
                            semester_lp_liste = semester_lp_liste,
-                           semester_sws_liste = semester_sws_liste)
+                           semester_sws_liste = semester_sws_liste,
+                           user_start_semester = user_start_semester)
 
+
+
+@app.route("/swap", methods=["GET"])
+@login_required
+def swap():
+    user_matrikelnummer = session["matrikelnummer"]
+    user_passwort_hash = session["passwort"]
+    user = dbase.get_user(user_matrikelnummer, user_passwort_hash)
+    user_id = session["user_ID"] = user[0][0]
+    semester_anzahl = user[0][11]
+    semester_modul_liste = []
+    user_start_semester = user[0][6]
+    failed = 0
+
+
+    # Gewählte Module bekommen
+    for i in range(1, semester_anzahl + 1):
+        semester_modul_liste.append(dbase.get_gewaehlte_module(user_id, i))
+    module_for_jeweiliges_semester = []
+    # Get gewählte Module
+    for i in range(1, semester_anzahl + 1):
+        module_for_jeweiliges_semester.append(dbase.get_ausgewählte_module_infos(user_id, i))
+
+    # Für jeweiliges Semester LP und SWS bekommen
+    semester_lp_liste = []
+    semester_sws_liste = []
+    for i in range(1, semester_anzahl + 1):
+        lp_gesamt = int(dbase.get_Summe_Pflicht_Vertiefung(user_id, user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_WPF_Vertiefung(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_WPF_andere(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_Grundlagenpraktika(user_id, i)[0][0]) + \
+                    int(dbase.get_Summe_weitere_Einfuehrung(user_id, i)[0][0])
+
+        semesterwochenstunden = int(dbase.get_Summe_Pflicht_Vertiefung_sws(user_id, user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_WPF_Vertiefung_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_WPF_andere_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_Grundlagenpraktika_sws(user_id, i)[0][0]) + \
+                                int(dbase.get_Summe_weitere_Einfuehrung_sws(user_id, i)[0][0])
+
+        semester_lp_liste.append(lp_gesamt)
+        semester_sws_liste.append(semesterwochenstunden)
+
+    if request.is_json:
+        if request.args.get("value"):
+
+            temp_module_id = request.args.get("value")
+
+            if str(temp_module_id) in session["swap_module"]:
+                for i in session["swap_module"]:
+                    if str(temp_module_id) == i:
+                        session["swap_module"].remove(i)
+            elif str(temp_module_id) not in session["swap_module"]:
+                if len(session["swap_module"]) == 2:
+                    flash("Du hast bereits 2 Module ausgewählt.")
+                    return redirect(request.url)
+                session["swap_module"].append(temp_module_id)
+
+            if len(session["swap_module"]) == 2:
+                swap_modul_1 = dbase.get_gewaehltes_modul(user_id, str(session["swap_module"][0]))
+                swap_modul_2 = dbase.get_gewaehltes_modul(user_id, str(session["swap_module"][1]))
+                swap_modul_1_info = dbase.get_single_module(str(session["swap_module"][0]))
+                swap_modul_2_info = dbase.get_single_module(str(session["swap_module"][1]))
+                semester_swap_modul_1 = swap_modul_1[0][2]
+                semester_swap_modul_2 = swap_modul_2[0][2]
+
+                if swap_modul_1_info[0][2] == "Bachelorarbeit" or swap_modul_2_info[0][2] == "Bachelorarbeit":
+                    lp_gesamt_vor_sem_modul_1 = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_id, user_id, semester_swap_modul_1)[0][0]) + \
+                                                int(dbase.get_Summe_WPF_Vertiefung_Vor(user_id, semester_swap_modul_1)[0][0]) + \
+                                                int(dbase.get_Summe_WPF_andere_Vor(user_id, semester_swap_modul_1)[0][0]) + \
+                                                int(dbase.get_Summe_Grundlagenpraktika_Vor(user_id, semester_swap_modul_1)[0][0]) + \
+                                                int(dbase.get_Summe_weitere_Einfuehrung_Vor(user_id, semester_swap_modul_1)[0][0])
+
+                    lp_gesamt_vor_sem_modul_2 = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_id, user_id, semester_swap_modul_2)[0][0]) + \
+                                                int(dbase.get_Summe_WPF_Vertiefung_Vor(user_id, semester_swap_modul_2)[0][0]) + \
+                                                int(dbase.get_Summe_WPF_andere_Vor(user_id, semester_swap_modul_2)[0][0]) + \
+                                                int(dbase.get_Summe_Grundlagenpraktika_Vor(user_id, semester_swap_modul_2)[0][0]) + \
+                                                int(dbase.get_Summe_weitere_Einfuehrung_Vor(user_id, semester_swap_modul_2)[0][0])
+
+                    if lp_gesamt_vor_sem_modul_1 < 120 or lp_gesamt_vor_sem_modul_2 < 120:
+                        flash("Tauschen nicht möglich, da Voraussetzung für die Bachleorarbeit 120LP sind.")
+                        return redirect("")
+
+                if(int(semester_swap_modul_1) == int(semester_swap_modul_2)):
+                    flash("Beide Module liegen im gleichen Semester")
+                    return redirect("")
+
+                if (swap_modul_1_info[0][5] != swap_modul_2_info[0][5]): # WiSe != SoSe
+                    if (swap_modul_1_info[0][5] == "Wintersemester, Sommersemester") or (swap_modul_2_info[0][5] == "Wintersemester, Sommersemester"):
+                        pass
+                    else:
+                        flash("Die Module werden ausschließlich in unterschiedlichen Semestern (SoSe/WiSe) angeboten.")
+                        return redirect("")
+
+                # Voraussetzungen prüfen für Modul swap_modul_1 in semester von swap_modul_2
+                id_list_temp_vor_sem = dbase.get_vorherige_belegte_modul_ids(user_id, semester_swap_modul_2)
+                id_list_temp_vor_sem_temp = []
+                unbelegte_vorausgesetzte_kurse = []
+                for i in id_list_temp_vor_sem:
+                    id_list_temp_vor_sem_temp.append(i[0])  # bereits belegte module (id)
+                increment = 0
+                kurs_voraussetzung = dbase.get_modul_voraussetzungen(str(session["swap_module"][0]))  # Voraussetzungen für idModule
+                for v in kurs_voraussetzung:
+                    if str(session["swap_module"][0]) == str(v[2]) and int(
+                            v[1]) not in id_list_temp_vor_sem_temp:  # wenn idModule == modulID in voraussetzung_module
+                        unbelegte_vorausgesetzte_kurse.append(str(v[1]))  # Vorausgesetzter kurs und noch nicht belegt
+                        if unbelegte_vorausgesetzte_kurse:
+                            for unbelegt in unbelegte_vorausgesetzte_kurse:
+                                modul_from_db = dbase.get_single_module(unbelegt)
+                                flash("Das Modul >>" + modul_from_db[0][2] + "<< wird als Voraussetzung für das Modul >>" + swap_modul_1_info[0][2] + "<< benötigt.")
+                            increment = increment + 1
+                            failed = failed + 1
+                if increment > 0:
+                    return redirect("")
+
+                # Voraussetzungen prüfen für Modul swap_modul_2 in semester von swap_modul_1
+                id_list_temp_vor_sem = dbase.get_vorherige_belegte_modul_ids(user_id, semester_swap_modul_1)
+                id_list_temp_vor_sem_temp = []
+                unbelegte_vorausgesetzte_kurse = []
+                for i in id_list_temp_vor_sem:
+                    id_list_temp_vor_sem_temp.append(i[0])  # bereits belegte module (id)
+                increment = 0
+                kurs_voraussetzung = dbase.get_modul_voraussetzungen(str(session["swap_module"][1]))  # Voraussetzungen für idModule
+                for v in kurs_voraussetzung:
+                    if str(session["swap_module"][1]) == str(v[2]) and int(
+                            v[1]) not in id_list_temp_vor_sem_temp:  # wenn idModule == modulID in voraussetzung_module
+                        unbelegte_vorausgesetzte_kurse.append(str(v[1]))  # Vorausgesetzter kurs und noch nicht belegt
+                        if unbelegte_vorausgesetzte_kurse:
+                            for unbelegt in unbelegte_vorausgesetzte_kurse:
+                                modul_from_db = dbase.get_single_module(unbelegt)
+                                flash("Das Modul >>" + modul_from_db[0][2] + "<< wird als Voraussetzung für das Modul >>" + swap_modul_2_info[0][2] + "<< benötigt.")
+                            increment = increment + 1
+                            failed = failed + 1
+                if increment > 0:
+                    return redirect("")
+
+                # Voraussetzungen nachher prüfen für Modul swap_modul_1 in semester von swap_modul_2
+
+                gewählte_module = dbase.get_alle_gewaehlte_module(user_id)
+                gewählte_module_liste = []
+
+                temp_m = []
+                increment = 0
+
+                for i in gewählte_module:
+                    gewählte_module_liste.append(i[0])
+                modulvoraussetzungs_IDs = dbase.get_modul_voraussetzungen_nach(str(session["swap_module"][0]))
+                for v in modulvoraussetzungs_IDs:
+                    if v[2] in gewählte_module_liste:
+                        list_semester_voraussetzungen = []
+                        temp_m.append(v[2])
+                        for i in temp_m:
+                            l = dbase.get_semester_of_module(user_id, i)
+                            if l:
+                                list_semester_voraussetzungen.append(l[0][0])
+
+                        for i in list_semester_voraussetzungen:
+                            if semester_swap_modul_2 > i:
+                                vor_modul = dbase.get_single_module(v[2])
+                                flash("Das Modul >>" + vor_modul[0][2] + "<< benötigt das Modul >>" + swap_modul_1_info[0][2] + "<< als Voraussetzung.")
+                                increment = increment + 1
+                                failed = failed + 1
+                if increment > 0:
+                    return redirect("")
+
+                # Voraussetzungen nachher prüfen für Modul swap_modul_2 in semester von swap_modul_1
+                temp_m = []
+                increment = 0
+
+                for i in gewählte_module:
+                    gewählte_module_liste.append(i[0])
+                modulvoraussetzungs_IDs = dbase.get_modul_voraussetzungen_nach(str(session["swap_module"][1]))
+                for v in modulvoraussetzungs_IDs:
+                    if v[2] in gewählte_module_liste:
+                        list_semester_voraussetzungen = []
+                        temp_m.append(v[2])
+                        for i in temp_m:
+                            l = dbase.get_semester_of_module(user_id, i)
+                            if l:
+                                list_semester_voraussetzungen.append(l[0][0])
+
+                        for i in list_semester_voraussetzungen:
+                            if semester_swap_modul_1 > i:
+                                vor_modul = dbase.get_single_module(v[2])
+                                flash("Das Modul >>" + vor_modul[0][2] + "<< benötigt das Modul >>" + swap_modul_2_info[0][2] + "<< als Voraussetzung.")
+                                increment = increment + 1
+                                failed = failed + 1
+                if increment > 0:
+                    return redirect("")
+
+                if failed == 0:
+                    swap_mod_1 = swap_modul_1[0][2]
+                    swap_mod_2 = swap_modul_2[0][2]
+                    dbase.update_semester(swap_mod_2, user_id, swap_modul_1[0][4])
+                    dbase.update_semester(swap_mod_1, user_id, swap_modul_2[0][4])
+                    session["swap_module"].clear()
+
+    return render_template("swap.html",
+                           semester_anzahl=semester_anzahl,
+                           semester_modul_liste=semester_modul_liste,
+                           module_for_jeweiliges_semester=module_for_jeweiliges_semester,
+                           semester_lp_liste=semester_lp_liste,
+                           semester_sws_liste=semester_sws_liste,
+                           swap_module=session["swap_module"],
+                           user_start_semester = user_start_semester)
 
 
 @app.route("/modulauswahl", methods=["GET"])
@@ -507,10 +710,8 @@ def modulauswahl():
 
     #Pflichtmodule Leistungspunkte
     sum_pflicht_vertiefung_lp = dbase.get_Summe_Pflicht_Vertiefung_Gesamt(user_id, user_id)
-    print("SUMAOWIDJ", sum_pflicht_vertiefung_lp)
     user_pflicht_lp_soll = temp[0][3]
     user_pflicht_lp_ist = int(sum_pflicht_vertiefung_lp[0][0])
-    print("IAWNDAWKJND", user_pflicht_lp_ist)
 
     #Weitere Einführung Leistungspunkte
     sum_weitere_einfuherung_lp = dbase.get_Summe_weitere_Einfuehrung_Gesamt(user_id)
@@ -540,7 +741,6 @@ def modulauswahl():
                             int(dbase.get_Summe_WPF_andere(user_id, current_semester)[0][0]) +\
                             int(dbase.get_Summe_Grundlagenpraktika(user_id, current_semester)[0][0]) + \
                             int(dbase.get_Summe_weitere_Einfuehrung(user_id, current_semester)[0][0])
-    print("LP_GESSAMT:", lp_gesamt) #empfohlene Wahlpflichkturse aus anderen Vertiefungen irgendwas mit weitere wpm nur bei geraden?
 
     #LP-Gesamt in den vorherigen Semestern (Für Bachelorarbeit relevant)
     lp_gesamt_vor_sem = int(dbase.get_Summe_Pflicht_Vertiefung_Vor(user_id, user_id, current_semester)[0][0]) + \
@@ -600,31 +800,55 @@ def modulauswahl():
             empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
             nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
             if user_wahlpflicht_andere_LP_ist < 12:
-                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
-                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
+                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "empfohlen_in",user_wahlvertiefung_ID, user_id)
+                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "empfohlen_in",user_wahlvertiefung_ID, user_id)
+                andere_erlaubte_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "erlaubt_in",user_wahlvertiefung_ID, user_id)
+                andere_nichterlaubte_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "erlaubt_in", user_wahlvertiefung_ID, user_id)
+                andere_ausgegraute_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "nicht_empfohlen_in",user_wahlvertiefung_ID, user_id)
+                andere_n_ausgegraute_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "nicht_empfohlen_in", user_wahlvertiefung_ID, user_id)
             else:
                 andere_empfohlene_wahlpflichtkurse = []
                 andere_nichtempfohlene_wahlpflichtkurse = []
+                andere_erlaubte_wahlpflichtkurse = []
+                andere_nichterlaubte_wahlpflichtkurse = []
+                andere_ausgegraute_wahlpflichtkurse = []
+                andere_n_ausgegraute_wahlpflichtkurse = []
         else:
             empfohlene_wahlpflichtkurse = []
             nichtempfohlene_wahlpflichtkurse = []
             andere_empfohlene_wahlpflichtkurse = []
             andere_nichtempfohlene_wahlpflichtkurse = []
+            andere_erlaubte_wahlpflichtkurse = []
+            andere_nichterlaubte_wahlpflichtkurse = []
+            andere_ausgegraute_wahlpflichtkurse = []
+            andere_n_ausgegraute_wahlpflichtkurse = []
     elif user_wahlvertiefung_ID == 2:
         if user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist < 12:
             empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
             nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
             if user_wahlpflicht_andere_LP_ist < 6:
-                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
-                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
+                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "empfohlen_in", user_wahlvertiefung_ID, user_id)
+                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "empfohlen_in", user_wahlvertiefung_ID, user_id)
+                andere_erlaubte_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "erlaubt_in", user_wahlvertiefung_ID, user_id)
+                andere_nichterlaubte_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "erlaubt_in", user_wahlvertiefung_ID, user_id)
+                andere_ausgegraute_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "nicht_empfohlen_in", user_wahlvertiefung_ID, user_id)
+                andere_n_ausgegraute_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "nicht_empfohlen_in", user_wahlvertiefung_ID, user_id)
             else:
                 andere_empfohlene_wahlpflichtkurse = []
                 andere_nichtempfohlene_wahlpflichtkurse = []
+                andere_erlaubte_wahlpflichtkurse = []
+                andere_nichterlaubte_wahlpflichtkurse = []
+                andere_ausgegraute_wahlpflichtkurse = []
+                andere_n_ausgegraute_wahlpflichtkurse = []
         else:
             empfohlene_wahlpflichtkurse = []
             nichtempfohlene_wahlpflichtkurse = []
             andere_empfohlene_wahlpflichtkurse = []
             andere_nichtempfohlene_wahlpflichtkurse = []
+            andere_erlaubte_wahlpflichtkurse = []
+            andere_nichterlaubte_wahlpflichtkurse = []
+            andere_ausgegraute_wahlpflichtkurse = []
+            andere_n_ausgegraute_wahlpflichtkurse = []
     elif user_wahlvertiefung_ID == 4:
         if user_wahlpflicht_LP_ist < 6:
             empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
@@ -632,7 +856,6 @@ def modulauswahl():
         else:
             empfohlene_wahlpflichtkurse = []
             nichtempfohlene_wahlpflichtkurse = []
-
 
     gewaehlte_module = dbase.get_gewaehlte_module(user_id, current_semester)
     benutzer_modul_ids = []
@@ -691,6 +914,8 @@ def modulauswahl():
 
             return render_template("modulauswahl.html",
                            module1=module1,
+                           user_start_semester=user_start_semester,
+                           user_wahlvertiefung_ID=user_wahlvertiefung_ID,
                            pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                            pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                            pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -720,7 +945,12 @@ def modulauswahl():
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
                                    user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                                   semester_anzahl = semester_anzahl)
+                                   semester_anzahl = semester_anzahl,
+                                   andere_erlaubte_wahlpflichtkurse=andere_erlaubte_wahlpflichtkurse,
+                                   andere_nichterlaubte_wahlpflichtkurse=andere_nichterlaubte_wahlpflichtkurse,
+                                   andere_ausgegraute_wahlpflichtkurse=andere_ausgegraute_wahlpflichtkurse,
+                                   andere_n_ausgegraute_wahlpflichtkurse=andere_n_ausgegraute_wahlpflichtkurse
+                                   )
 
 
 
@@ -838,6 +1068,8 @@ def modulauswahl():
         if user_wahlvertiefung_ID == 1 or user_wahlvertiefung_ID == 3:
             return render_template("modulauswahl.html",
                                    module1=module1,
+                                   user_start_semester=user_start_semester,
+                                   user_wahlvertiefung_ID=user_wahlvertiefung_ID,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                    pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                    pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -867,11 +1099,17 @@ def modulauswahl():
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
                                    user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                                   semester_anzahl = semester_anzahl
+                                   semester_anzahl = semester_anzahl,
+                                   andere_erlaubte_wahlpflichtkurse=andere_erlaubte_wahlpflichtkurse,
+                                   andere_nichterlaubte_wahlpflichtkurse=andere_nichterlaubte_wahlpflichtkurse,
+                                   andere_ausgegraute_wahlpflichtkurse=andere_ausgegraute_wahlpflichtkurse,
+                                   andere_n_ausgegraute_wahlpflichtkurse=andere_n_ausgegraute_wahlpflichtkurse
                                    )
         elif user_wahlvertiefung_ID == 2:
             return render_template("modulauswahl.html",
                                    module1=module1,
+                                   user_start_semester=user_start_semester,
+                                   user_wahlvertiefung_ID=user_wahlvertiefung_ID,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                    pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                    pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -897,11 +1135,17 @@ def modulauswahl():
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
                                    user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                                   semester_anzahl = semester_anzahl
+                                   semester_anzahl = semester_anzahl,
+                                   andere_erlaubte_wahlpflichtkurse=andere_erlaubte_wahlpflichtkurse,
+                                   andere_nichterlaubte_wahlpflichtkurse=andere_nichterlaubte_wahlpflichtkurse,
+                                   andere_ausgegraute_wahlpflichtkurse=andere_ausgegraute_wahlpflichtkurse,
+                                   andere_n_ausgegraute_wahlpflichtkurse=andere_n_ausgegraute_wahlpflichtkurse
                                    )
         elif user_wahlvertiefung_ID == 4:
             return render_template("modulauswahl.html",
                                    module1=module1,
+                                   user_start_semester=user_start_semester,
+                                   user_wahlvertiefung_ID = user_wahlvertiefung_ID,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                    pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                    pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -932,6 +1176,8 @@ def modulauswahl():
     if user_wahlvertiefung_ID == 1 or user_wahlvertiefung_ID == 3:
         return render_template("modulauswahl.html",
                                module1=module1,
+                               user_start_semester=user_start_semester,
+                               user_wahlvertiefung_ID = user_wahlvertiefung_ID,
                                pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -961,11 +1207,17 @@ def modulauswahl():
                                lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                current_semester = current_semester,
                                user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                               semester_anzahl = semester_anzahl
+                               semester_anzahl = semester_anzahl,
+                               andere_erlaubte_wahlpflichtkurse=andere_erlaubte_wahlpflichtkurse,
+                               andere_nichterlaubte_wahlpflichtkurse=andere_nichterlaubte_wahlpflichtkurse,
+                               andere_ausgegraute_wahlpflichtkurse=andere_ausgegraute_wahlpflichtkurse,
+                               andere_n_ausgegraute_wahlpflichtkurse=andere_n_ausgegraute_wahlpflichtkurse
                                )
     elif user_wahlvertiefung_ID == 2:
         return render_template("modulauswahl.html",
                                module1=module1,
+                               user_start_semester=user_start_semester,
+                               user_wahlvertiefung_ID = user_wahlvertiefung_ID,
                                pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -991,11 +1243,17 @@ def modulauswahl():
                                lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                current_semester = current_semester,
                                user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                               semester_anzahl = semester_anzahl
+                               semester_anzahl = semester_anzahl,
+                               andere_erlaubte_wahlpflichtkurse = andere_erlaubte_wahlpflichtkurse,
+                               andere_nichterlaubte_wahlpflichtkurse = andere_nichterlaubte_wahlpflichtkurse,
+                               andere_ausgegraute_wahlpflichtkurse = andere_ausgegraute_wahlpflichtkurse,
+                               andere_n_ausgegraute_wahlpflichtkurse = andere_n_ausgegraute_wahlpflichtkurse
                                )
     elif user_wahlvertiefung_ID == 4:
             return render_template("modulauswahl.html",
                                    module1=module1,
+                                   user_start_semester=user_start_semester,
+                                   user_wahlvertiefung_ID = user_wahlvertiefung_ID,
                                    pflichtkurse_nicht_empfohlen=pflichtkurse_nicht_empfohlen,
                                    pflichtkurse_vertiefung_empfohlen=pflichtkurse_vertiefung_empfohlen,
                                    pflichtkurse_vertiefung_nicht_empfohlen=pflichtkurse_vertiefung_nicht_empfohlen,
@@ -1021,6 +1279,34 @@ def modulauswahl():
                                    user_wahlpflicht_LP_ist_summe=user_wahlpflicht_LP_ist_summe,
                                    semester_anzahl=semester_anzahl
                                    )
+
+@app.route('/update/<int:ID>', methods=['GET', 'POST'])
+@login_required
+def update(ID):
+    form = RegisterForm()
+    name_to_update = Studierende.query.get_or_404(ID)
+    if request.method == "POST":
+        name_to_update.vorname = request.form['vorname']
+        name_to_update.nachname = request.form['nachname']
+        name_to_update.email = request.form['email']
+        name_to_update.wahlvertiefung_ID = request.form['erste_Vertiefung']
+        name_to_update.wahlvertiefung2_ID = request.form['zweite_Vertiefung']
+        try:
+            db.session.commit()
+            flash("Profil erfolgreich geändert!")
+            return render_template("user.html", form=form, name_to_update=name_to_update, ID=ID)
+        except:
+            flash("Error! Ein Problem ist aufgetreten versuch es erneut")
+            return render_template("update.html", form=form, name_to_update=name_to_update, ID=ID)
+    else:
+        return render_template("update.html", form=form, name_to_update=name_to_update, ID=ID)
+
+@app.route('/user', methods=['GET', 'POST'])
+@login_required
+def user():
+    form = RegisterForm()
+    return render_template('user.html', form=form)
+
 
 @app.route('/logout')
 def logout():

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% for message in get_flashed_messages() %}
+
+	<div class="alert alert-warning alert-dismissible fade show" role="alert">
+	  {{ message }}
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	</div>
+
+
+{% endfor %}
+
+{% if ID == current_user.ID %}
+
+	<h1>Profil Bearbeiten </h1>
+	<br/>
+<div class="shadow p-3 mb-5 bg-body rounded">
+	<form action="/update/{{ name_to_update.ID }}" method="POST">
+		{{ form.hidden_tag() }}
+
+		{{ form.vorname.label(class="form-label") }}
+
+		{{ form.vorname(class="form-control", value=name_to_update.vorname) }}
+		<br/>
+
+		{{ form.nachname.label(class="form-label") }}
+
+		{{ form.nachname(class="form-control", value=name_to_update.nachname) }}
+		<br/>
+
+		{{ form.email.label(class="form-label") }}
+
+		{{ form.email(class="form-control", value=name_to_update.email) }}
+		<br/>
+
+		{{ form.erste_Vertiefung.label(class="form-label") }}
+
+		{{ form.erste_Vertiefung(class="form-control", value=name_to_update.erste_Vertiefung) }}
+		<br/>
+
+		{{ form.zweite_Vertiefung.label(class="form-label") }}
+
+		{{ form.zweite_Vertiefung(class="form-control", value=name_to_update.zweite_Vertiefung) }}
+		<br/>
+
+
+		{{ form.submit(class="btn btn-secondary") }}
+
+
+
+
+	</form>
+</div>
+<br/><br/><br/>
+
+{% else %}
+ <div class="alert alert-warning alert-dismissible fade show" role="alert">
+	  Sorry! You Can't Edit This User...
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	</div>
+
+	<h2>Access Denied!</h2>
+	<p>Sorry, you cannot access this user profile...</p>
+
+{% endif %}
+
+
+{% endblock %}

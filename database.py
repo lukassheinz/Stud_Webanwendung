@@ -397,7 +397,7 @@ class Database:
         JOIN benutzer_modul bm ON bm.modul_ID = m.ID
         JOIN benutzer b ON b.ID = bm.benutzer_ID
         JOIN vertiefung_modul vm ON vm.vertiefung_ID = b.wahlvertiefung_ID AND vm.modul_ID = m.ID 
-        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung = "erlaubt_in" AND semester= %s;
+        AND benutzer_ID = %s AND m.pflicht_wahlpflicht = "Wahlpflicht" AND vm.zuordnung IN ("empfohlen_in", "erlaubt_in", "nicht_empfohlen_in") AND semester= %s;
         """
         parameter = (benutzer_id, semester)
         return self.engine.execute(sql_query, parameter).fetchall()

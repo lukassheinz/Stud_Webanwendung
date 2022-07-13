@@ -1016,3 +1016,14 @@ class Database:
         """
         parameter = (semester, benutzer_id, modul_id)
         return self.engine.execute(sql_query, parameter)
+
+
+# Löschen der Module nach Änderung der Vertiefung
+
+    def delete_module_von_benutzer(self, benutzer_id):
+        sql_query = """
+        DELETE FROM benutzer_modul
+        WHERE benutzer_ID = %s
+        """
+        parameter = (semester, benutzer_id)
+        return self.engine.execute(sql_query, parameter)

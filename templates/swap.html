@@ -13,13 +13,11 @@ Swap
 
     <style>
 
-        .container{
+        .container-swap{
             margin: 0;
             display: flex;
-            flex: 1;
-            flex-align: center;
-            flex-shrink: 1;
-            flex-grow: 0;
+            padding-left: 10px;
+            padding-right: 100%;
         }
 
         .flex-container {
@@ -107,7 +105,7 @@ Swap
 
 {% block content %}
 <h2>Module tauschen</h2>
-<div class="container">
+<div class="container-swap">
     <figure>
     <div class="flex-container">
         {% for sem in range(1, semester_anzahl + 1) %}

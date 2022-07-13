@@ -778,31 +778,55 @@ def modulauswahl():
             empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
             nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
             if user_wahlpflicht_andere_LP_ist < 12:
-                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
-                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
+                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "empfohlen_in",user_wahlvertiefung_ID, user_id)
+                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "empfohlen_in",user_wahlvertiefung_ID, user_id)
+                andere_erlaubte_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "erlaubt_in",user_wahlvertiefung_ID, user_id)
+                andere_nichterlaubte_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "erlaubt_in", user_wahlvertiefung_ID, user_id)
+                andere_ausgegraute_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "nicht_empfohlen_in",user_wahlvertiefung_ID, user_id)
+                andere_n_ausgegraute_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "nicht_empfohlen_in", user_wahlvertiefung_ID, user_id)
             else:
                 andere_empfohlene_wahlpflichtkurse = []
                 andere_nichtempfohlene_wahlpflichtkurse = []
+                andere_erlaubte_wahlpflichtkurse = []
+                andere_nichterlaubte_wahlpflichtkurse = []
+                andere_ausgegraute_wahlpflichtkurse = []
+                andere_n_ausgegraute_wahlpflichtkurse = []
         else:
             empfohlene_wahlpflichtkurse = []
             nichtempfohlene_wahlpflichtkurse = []
             andere_empfohlene_wahlpflichtkurse = []
             andere_nichtempfohlene_wahlpflichtkurse = []
+            andere_erlaubte_wahlpflichtkurse = []
+            andere_nichterlaubte_wahlpflichtkurse = []
+            andere_ausgegraute_wahlpflichtkurse = []
+            andere_n_ausgegraute_wahlpflichtkurse = []
     elif user_wahlvertiefung_ID == 2:
         if user_wahlpflicht_LP_ist + user_wahlpflicht_andere_LP_ist < 12:
             empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
             nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneVertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
             if user_wahlpflicht_andere_LP_ist < 6:
-                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
-                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
+                andere_empfohlene_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "empfohlen_in", user_wahlvertiefung_ID, user_id)
+                andere_nichtempfohlene_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "empfohlen_in", user_wahlvertiefung_ID, user_id)
+                andere_erlaubte_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "erlaubt_in", user_wahlvertiefung_ID, user_id)
+                andere_nichterlaubte_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "erlaubt_in", user_wahlvertiefung_ID, user_id)
+                andere_ausgegraute_wahlpflichtkurse = dbase.get_andereModule(start_semester, current_semester, "nicht_empfohlen_in", user_wahlvertiefung_ID, user_id)
+                andere_n_ausgegraute_wahlpflichtkurse = dbase.get_nichtEmpfohleneAndereModule(start_semester, current_semester, "nicht_empfohlen_in", user_wahlvertiefung_ID, user_id)
             else:
                 andere_empfohlene_wahlpflichtkurse = []
                 andere_nichtempfohlene_wahlpflichtkurse = []
+                andere_erlaubte_wahlpflichtkurse = []
+                andere_nichterlaubte_wahlpflichtkurse = []
+                andere_ausgegraute_wahlpflichtkurse = []
+                andere_n_ausgegraute_wahlpflichtkurse = []
         else:
             empfohlene_wahlpflichtkurse = []
             nichtempfohlene_wahlpflichtkurse = []
             andere_empfohlene_wahlpflichtkurse = []
             andere_nichtempfohlene_wahlpflichtkurse = []
+            andere_erlaubte_wahlpflichtkurse = []
+            andere_nichterlaubte_wahlpflichtkurse = []
+            andere_ausgegraute_wahlpflichtkurse = []
+            andere_n_ausgegraute_wahlpflichtkurse = []
     elif user_wahlvertiefung_ID == 4:
         if user_wahlpflicht_LP_ist < 6:
             empfohlene_wahlpflichtkurse = dbase.get_VertiefungModule(start_semester, current_semester, user_wahlvertiefung_ID, user_id)
@@ -898,7 +922,12 @@ def modulauswahl():
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
                                    user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                                   semester_anzahl = semester_anzahl)
+                                   semester_anzahl = semester_anzahl,
+                                   andere_erlaubte_wahlpflichtkurse=andere_erlaubte_wahlpflichtkurse,
+                                   andere_nichterlaubte_wahlpflichtkurse=andere_nichterlaubte_wahlpflichtkurse,
+                                   andere_ausgegraute_wahlpflichtkurse=andere_ausgegraute_wahlpflichtkurse,
+                                   andere_n_ausgegraute_wahlpflichtkurse=andere_n_ausgegraute_wahlpflichtkurse
+                                   )
 
 
 
@@ -1045,7 +1074,11 @@ def modulauswahl():
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
                                    user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                                   semester_anzahl = semester_anzahl
+                                   semester_anzahl = semester_anzahl,
+                                   andere_erlaubte_wahlpflichtkurse=andere_erlaubte_wahlpflichtkurse,
+                                   andere_nichterlaubte_wahlpflichtkurse=andere_nichterlaubte_wahlpflichtkurse,
+                                   andere_ausgegraute_wahlpflichtkurse=andere_ausgegraute_wahlpflichtkurse,
+                                   andere_n_ausgegraute_wahlpflichtkurse=andere_n_ausgegraute_wahlpflichtkurse
                                    )
         elif user_wahlvertiefung_ID == 2:
             return render_template("modulauswahl.html",
@@ -1075,7 +1108,11 @@ def modulauswahl():
                                    lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                    current_semester = current_semester,
                                    user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                                   semester_anzahl = semester_anzahl
+                                   semester_anzahl = semester_anzahl,
+                                   andere_erlaubte_wahlpflichtkurse=andere_erlaubte_wahlpflichtkurse,
+                                   andere_nichterlaubte_wahlpflichtkurse=andere_nichterlaubte_wahlpflichtkurse,
+                                   andere_ausgegraute_wahlpflichtkurse=andere_ausgegraute_wahlpflichtkurse,
+                                   andere_n_ausgegraute_wahlpflichtkurse=andere_n_ausgegraute_wahlpflichtkurse
                                    )
         elif user_wahlvertiefung_ID == 4:
             return render_template("modulauswahl.html",
@@ -1139,7 +1176,11 @@ def modulauswahl():
                                lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                current_semester = current_semester,
                                user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                               semester_anzahl = semester_anzahl
+                               semester_anzahl = semester_anzahl,
+                               andere_erlaubte_wahlpflichtkurse=andere_erlaubte_wahlpflichtkurse,
+                               andere_nichterlaubte_wahlpflichtkurse=andere_nichterlaubte_wahlpflichtkurse,
+                               andere_ausgegraute_wahlpflichtkurse=andere_ausgegraute_wahlpflichtkurse,
+                               andere_n_ausgegraute_wahlpflichtkurse=andere_n_ausgegraute_wahlpflichtkurse
                                )
     elif user_wahlvertiefung_ID == 2:
         return render_template("modulauswahl.html",
@@ -1169,7 +1210,11 @@ def modulauswahl():
                                lp_gesamt_alle_semester = lp_gesamt_alle_semester,
                                current_semester = current_semester,
                                user_wahlpflicht_LP_ist_summe = user_wahlpflicht_LP_ist_summe,
-                               semester_anzahl = semester_anzahl
+                               semester_anzahl = semester_anzahl,
+                               andere_erlaubte_wahlpflichtkurse = andere_erlaubte_wahlpflichtkurse,
+                               andere_nichterlaubte_wahlpflichtkurse = andere_nichterlaubte_wahlpflichtkurse,
+                               andere_ausgegraute_wahlpflichtkurse = andere_ausgegraute_wahlpflichtkurse,
+                               andere_n_ausgegraute_wahlpflichtkurse = andere_n_ausgegraute_wahlpflichtkurse
                                )
     elif user_wahlvertiefung_ID == 4:
             return render_template("modulauswahl.html",

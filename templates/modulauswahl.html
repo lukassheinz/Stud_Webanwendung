@@ -190,12 +190,47 @@ Modulauswahl
             border: 1px solid black;
         }
 
+        .yellow-box{
+            background: yellow;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 1px solid black;
+        }
+
+        .orange-box{
+            background: darkorange;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 1px solid black;
+        }
+
+
         .green-box-text{
             margin-right: 10px;
         }
         figure{
+
             display: flex;
             flex-direction: column;
+            width: 750px;
+        }
+
+        .list-group-empfohlen-wahlpflicht{
+            background: lightgreen;
+        }
+
+        .list-group-empfohlen-empfohlene-wahlpflichtkurse{
+            background: lightgreen;
+        }
+
+        .list-group-empfohlen-erlaubte-wahlpflichtkurse{
+            background: yellow;
+        }
+
+        .list-group-empfohlen-ausgegraut{
+            background: darkorange;
         }
 
     </style>
@@ -222,34 +257,27 @@ Modulauswahl
     <h4>Pflichtbereich ({{user_pflicht_lp_ist}} / {{user_pflicht_lp_soll}})</h4>
     {% if module1 or pflichtkurse_nicht_empfohlen or pflichtkurse_vertiefung_empfohlen or pflichtkurse_vertiefung_nicht_empfohlen %}
     <ul class ="list-group list-group-hover list-group-empfohlen">
-        <h6>empfohlene Pflichtmodule</h6>
+        <!-- <h6>empfohlene Pflichtmodule</h6> -->
         {% for item in module1 %}
             <li class = li value = {{item[0]}}>
-                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
-    </ul>
-    <ul class ="list-group list-group-hover list-group-nicht-empfohlen">
-        <h6>nicht empfohlene Pflichtmodule</h6>
-        {% for item in pflichtkurse_nicht_empfohlen %}
-            <li class = li value = {{item[0]}}>
-                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
-            </li>
-        {% endfor %}
-    </ul>
-    <ul class ="list-group list-group-hover list-group-empfohlen">
-        <h6>empfohlene Pflichtmodule aus der gewählten Vertiefung</h6>
         {% for item in pflichtkurse_vertiefung_empfohlen %}
             <li class = li value = {{item[0]}}>
-                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
     <ul class ="list-group list-group-hover list-group-nicht-empfohlen">
-        <h6>nicht empfohlene Pflichtkurse aus der gewählten Vertiefung</h6>
+        {% for item in pflichtkurse_nicht_empfohlen %}
+            <li class = li value = {{item[0]}}>
+                {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+            </li>
+        {% endfor %}
         {% for item in pflichtkurse_vertiefung_nicht_empfohlen %}
             <li class = li value = {{item[0]}}>
-                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -258,41 +286,36 @@ Modulauswahl
     <h4>Grundlagenpraktikum ({{user_grundlagenpraktikum_lp_ist}} / {{user_grundlagenpraktikum_lp_soll}})</h4>
     {% if grundlagenpraktikum or grundlagenpraktikum_nicht_empfohlen %}
     <ul class ="list-group list-group-hover list-group-empfohlen">
-        <h6>empfohlenes Grundlagenpraktikum</h6>
         {% for item in grundlagenpraktikum %}
             <li class = li value = {{item[0]}}>
-                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
-
-    {% endif %}
     {% if grundlagenpraktikum_nicht_empfohlen %}
     <ul class ="list-group list-group-hover list-group-nicht-empfohlen">
-        <h6>nicht empfohlenes Grundlagenpraktikum</h6>
         {% for item in grundlagenpraktikum_nicht_empfohlen %}
             <li class = li value = {{item[0]}}>
-                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
+    {% endif %}
     {% endif %}
     {% endif %}
     <h4>zweites Grundlagenmodul ({{user_weitere_einfuehrung_LP_ist}} / {{user_weitere_einfuehrung_LP_soll}})</h4>
     {% if zweites_Grundlagenmodul or zweites_Grundlagenmodul_nicht_empfohlen%}
     <ul class ="list-group list-group-hover list-group-empfohlen">
-        <h6>empfohlenes zweites Grundlagenmodul</h6>
         {% for item in zweites_Grundlagenmodul %}
             <li class = li value = {{item[0]}}>
-                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
     <ul class ="list-group list-group-hover list-group-nicht-empfohlen">
-        <h6>nicht empfohlenes zweites Grundlagenmodul</h6>
         {% for item in zweites_Grundlagenmodul_nicht_empfohlen %}
             <li class = li value = {{item[0]}}>
-                <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
             </li>
         {% endfor %}
     </ul>
@@ -304,83 +327,71 @@ Modulauswahl
     <h5>Leistungspunkte aus anderen Vertiefungen ({{user_wahlpflicht_andere_LP_ist}} / {{user_min_wahlpflicht_andere_LP}} - {{user_max_wahlpflicht_andere_LP}})</h5>
         {% endif %}
         {% if user_wahlvertiefung_ID != 4 %}
-            {% if empfohlene_wahlpflichtkurse %}
-                <ul class ="list-group list-group-hover list-group-empfohlen">
-                    <h6>empfohlene Wahlpflichtkurse</h6>
+            {% if empfohlene_wahlpflichtkurse or nichtempfohlene_wahlpflichtkurse %}
+                <ul class ="list-group list-group-hover list-group-empfohlen-wahlpflicht">
+                    <h6>Wahlpflichtkurse</h6>
                     {% for item in empfohlene_wahlpflichtkurse %}
                         <li class = li value = {{item[0]}}>
-                            <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                            {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
                         </li>
                     {% endfor %}
                 </ul>
-            {% endif %}
-            {% if nichtempfohlene_wahlpflichtkurse %}
                 <ul class ="list-group list-group-hover list-group-nicht-empfohlen">
-                    <h6>nicht empfohlene Wahlpflichtkurse</h6>
                     {% for item in nichtempfohlene_wahlpflichtkurse %}
                         <li class = li value = {{item[0]}}>
-                            <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                            {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
                         </li>
                     {% endfor %}
                 </ul>
             {% endif %}
         {% endif %}
-        {% if andere_empfohlene_wahlpflichtkurse %}
-            <ul class ="list-group list-group-hover list-group-empfohlen">
-                <h6>empfohlene Wahlpflichtkurse aus anderen Vertiefungen</h6>
+        {% if andere_empfohlene_wahlpflichtkurse or andere_nichtempfohlene_wahlpflichtkurse %}
+            <ul class ="list-group list-group-hover list-group-empfohlen-empfohlene-wahlpflichtkurse">
+                <h6>Wahlpflichtkurse aus anderen Vertiefungen</h6>
                 {% for item in andere_empfohlene_wahlpflichtkurse %}
                     <li class = li value = {{item[0]}}>
-                        <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                        {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
                     </li>
                 {% endfor %}
             </ul>
-        {% endif %}
-        {% if andere_nichtempfohlene_wahlpflichtkurse %}
             <ul class ="list-group list-group-hover list-group-nicht-empfohlen">
-                <h6>nicht empfohlene Wahlpflichtkurse aus anderen Vertiefungen</h6>
                 {% for item in andere_nichtempfohlene_wahlpflichtkurse %}
                     <li class = li value = {{item[0]}}>
-                        <!--ID: {{item[0]}}, -->Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                        {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
                     </li>
                 {% endfor %}
             </ul>
         {% endif %}
-        {% if andere_erlaubte_wahlpflichtkurse %}
-            <ul class ="list-group list-group-hover list-group-empfohlen">
-                <h6>empfohlene erlaubte Wahlpflichtkurse aus anderen Vertiefungen</h6>
+        {% if andere_erlaubte_wahlpflichtkurse or andere_nichterlaubte_wahlpflichtkurse %}
+            <ul class ="list-group list-group-hover list-group-empfohlen-erlaubte-wahlpflichtkurse">
+                <h6>erlaubte Wahlpflichtkurse aus anderen Vertiefungen</h6>
                 {% for item in andere_erlaubte_wahlpflichtkurse %}
                     <li class = li value = {{item[0]}}>
-                        Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                        {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
                     </li>
                 {% endfor %}
             </ul>
-        {% endif %}
-        {% if andere_nichterlaubte_wahlpflichtkurse %}
             <ul class = "list-group list-group-hover list-group-nicht-empfohlen">
-                <h6>nicht empfohlene erlaubte Wahlpflichtkurse aus anderen Vertiefungen</h6>
                 {% for item in andere_nichterlaubte_wahlpflichtkurse %}
                     <li class = li value = {{item[0]}}>
-                        Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                        {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
                     </li>
                 {% endfor %}
             </ul>
         {% endif %}
-        {% if andere_ausgegraute_wahlpflichtkurse %}
-            <ul class = "list-group list-group-hover list-group-empfohlen">
-                <h6>empfohlene, aber nicht passende Wahlpflichtkurse aus anderen Vertiefungen</h6>
+        {% if andere_ausgegraute_wahlpflichtkurse or andere_n_ausgegraute_wahlpflichtkurse %}
+            <ul class = "list-group list-group-hover list-group-empfohlen-ausgegraut">
+                <h6>nicht passende Wahlpflichtkurse aus anderen Vertiefungen</h6>
                 {% for item in andere_ausgegraute_wahlpflichtkurse %}
                     <li class = li value = {{item[0]}}>
-                        Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                        {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
                     </li>
                 {% endfor %}
             </ul>
-        {% endif %}
-        {% if andere_n_ausgegraute_wahlpflichtkurse %}
             <ul class ="list-group list-group-hover list-group-nicht-empfohlen">
-                <h6>nicht empfohlene, nicht passende Wahlpflichtkurse aus anderen Vertiefungen</h6>
                 {% for item in andere_n_ausgegraute_wahlpflichtkurse %}
                     <li class = li value = {{item[0]}}>
-                        Name: {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
+                        {{item[2]}}, Leistungspunkte: {{item[6]}}, Semesterwochenstunden: {{item[7]}}
                     </li>
                 {% endfor %}
             </ul>
@@ -391,6 +402,10 @@ Modulauswahl
             <p class="green-box-text"> = empfohlene Module in diesem Semester </p>
             <p class="red-box"> </p>
             <p class="rex-box-text"> = nicht empfohlene Module in diesem Semester </p>
+            <p class="yellow-box"> </p>
+            <p class="yellow-box-text"> = erlaubte Wahlpflichtkurse </p>
+            <p class="orange-box"> </p>
+            <p class="orange-box-text"> = nicht passende Wahlpflichtkurse </p>
         </figcaption>
     </figure>
 
@@ -410,7 +425,6 @@ Modulauswahl
     <button class="btn btn-primary add" onclick="addSemester()">Semester hinzufügen</button>
     <button class="btn btn-warning delete" onclick="deleteLastSemester()">Semester löschen</button>
     </div>
-<!--<button class="awdjk" onclick="addSemester()">Add Semester</button> -->
 <div class = belegte-module-container>
     <ul id = "belegte-module" class ="belegte-module list-group list-group-hover list-group-gewählt">
         {% if user_start_semester == "Wintersemester" %}
@@ -428,7 +442,7 @@ Modulauswahl
         {% endif %}
         {% for x in temp_list %}
             <li class = "semester-list" value = {{x[0][0][0]}} id = {{x[1]}}>
-                    <!--ID: {{x[0][0][0]}}, -->Name: {{x[0][0][2]}}, Leistungspunkte: {{x[0][0][6]}}, Semesterwochenstunden: {{x[0][0][7]}}
+                    {{x[0][0][2]}}, Leistungspunkte: {{x[0][0][6]}}, Semesterwochenstunden: {{x[0][0][7]}}
             </li>
         {% endfor %}
     </ul>

@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/propra2022' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:waterslide@localhost/Studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -342,7 +342,9 @@ class RegisterForm(FlaskForm):
 
 @app.route('/', methods = ["GET", "POST"])
 def index():
-    return render_template('index.html')
+    if user:
+        return redirect('/modulauswahl')
+    return redirect('/login')
 
 
 @app.route('/login', methods=['GET', 'POST'])

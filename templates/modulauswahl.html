@@ -429,15 +429,15 @@ Modulauswahl
     <ul id = "belegte-module" class ="belegte-module list-group list-group-hover list-group-gewählt">
         {% if user_start_semester == "Wintersemester" %}
             {% if current_semester % 2 == 0 %}
-                <h6>gewählte Module im {{current_semester}}. Semester (SoSe)</h6>
-            {% else %}
                 <h6>gewählte Module im {{current_semester}}. Semester (WiSe)</h6>
+            {% else %}
+                <h6>gewählte Module im {{current_semester}}. Semester (SoSe)</h6>
             {% endif %}
             {% elif user_start_semester == "Sommersemester" %}
             {% if current_semester % 2 == 0 %}
-                <h6>gewählte Module im {{current_semester}}. Semester (SoSe)</h6>
-            {% else %}
                 <h6>gewählte Module im {{current_semester}}. Semester (WiSe)</h6>
+            {% else %}
+                <h6>gewählte Module im {{current_semester}}. Semester (SoSe)</h6>
             {% endif %}
         {% endif %}
         {% for x in temp_list %}

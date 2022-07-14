@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1nf0rmat!k@localhost/propra2022' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -156,7 +156,7 @@ class Modul(UserMixin, db.Model):
     leistungspunkte = db.Column(db.Integer)
     semesterwochenstunden = db.Column(db.Integer)
     voraussetzungslp = db.Column(db.Integer)
-    modulvertiefung = db.relationship('Modulvertiefung', backref='modul')
+    modulvertiefung = db.relationship('Modulvertiefung', backref='modul', cascade='all,delete')
     def __str__(self):
         return self.modultitel
 
@@ -181,8 +181,8 @@ class Modulvertiefung(UserMixin, db.Model):
     __tablename__ = 'vertiefung_modul'
     ID = db.Column(db.Integer, primary_key=True)
     vertiefung_ID = db.Column(db.Integer, db.ForeignKey('vertiefung.ID'))
-    modul_ID = db.Column(db.Integer, db.ForeignKey('modul.ID'))
-    zuordnung = db.Column(db.Enum('erlaubt_in', 'gehoert_zu', 'Pflicht_in'))
+    modul_ID = db.Column(db.Integer, db.ForeignKey('modul.ID', ondelete="CASCADE"))
+    zuordnung = db.Column(db.Enum('erlaubt_in', 'gehoert_zu', 'Pflicht_in', 'empfohlen_in', 'nicht_empfohlen_in'))
 
 class Modulvoraussetzung(UserMixin, db.Model):
     __tablename__ = 'voraussetzung_modul'

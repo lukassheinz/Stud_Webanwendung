@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:waterslide@localhost/Studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:R33dxq2!!zghj@localhost/neu_studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -1311,10 +1311,11 @@ def update(ID):
         try:
             db.session.commit()
             flash("Profil erfolgreich geändert!")
-            return render_template("user.html", form=form, name_to_update=name_to_update, ID=ID)
+            return redirect("/löschen")
+            #return render_template("user.html", form=form, name_to_update=name_to_update, ID=ID)
         except:
             flash("Error! Ein Problem ist aufgetreten versuch es erneut")
-            return render_template("update.html", form=form, name_to_update=name_to_update, ID=ID)
+            return render_template("user.html", form=form, name_to_update=name_to_update, ID=ID)
     else:
         return render_template("update.html", form=form, name_to_update=name_to_update, ID=ID)
 
@@ -1332,6 +1333,22 @@ def logout():
     return redirect('/')
    # return redirect(url_for('modulauswahl'))
 
+@app.route('/löschen')
+@login_required
+def delete():
+    user = dbase.get_user(session["matrikelnummer"], session["passwort"])
+    session["benutzer_ID"] = user[0][0]
+    benutzer = session["benutzer_ID"]
+    x = dbase.delete_module_von_benutzer(benutzer)
+
+    return redirect('/user')
+
+class benutzer_modul(UserMixin, db.Model):
+    ID = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(50))
+    semester = db.Column(db.Integer)
+    benutzer_ID = db.Column(db.Integer)
+    modul_ID = db.Column(db.Integer)
 
 if __name__ == '__main__':
     app.run(debug=True)

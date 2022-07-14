@@ -1025,5 +1025,5 @@ class Database:
         DELETE FROM benutzer_modul
         WHERE benutzer_ID = %s
         """
-        parameter = (semester, benutzer_id)
+        parameter = (benutzer_id)
         return self.engine.execute(sql_query, parameter)

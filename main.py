@@ -338,7 +338,7 @@ class RegisterForm(FlaskForm):
     immatrikulationsjahr = StringField('Immatrikulationsjahr', validators=[InputRequired(), Length(min=4, max=4)])
     erste_Vertiefung = SelectField('Vertiefung 1', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
     zweite_Vertiefung = SelectField('Vertiefung 2', choices=choices) #('Embedded Systems', 'Visual Computing', 'Complex and Intelligent Software Systems', 'Medizinische Informatik'))
-    submit = SubmitField("Bearbeiten")
+    submit = SubmitField("Änderungen speichern")
 
 @app.route('/', methods = ["GET", "POST"])
 def index():

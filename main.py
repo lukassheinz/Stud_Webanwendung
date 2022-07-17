@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:***@localhost/###' #hier für *** Passwort der DB und für ### den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -203,7 +203,7 @@ admin.add_view((SecureModelViewBenutzer(Studierende, db.session, endpoint='Benut
 class prof(UserMixin, db.Model):
     ID = db.Column(db.Integer, primary_key=True)
     passwort = db.Column(db.String(80))
-    ProfID = db.Column(db.Integer)
+    prof_ID = db.Column(db.Integer)
 
 class ProfLoginForm(FlaskForm):
     username = StringField('ProfID', validators=[InputRequired(), Length(min=4, max=15)])
@@ -383,7 +383,7 @@ def signup():
 def proflogin():
     form = ProfLoginForm()
     if form.validate_on_submit():
-        userx = prof.query.filter_by(ProfID=form.username.data).first()
+        userx = prof.query.filter_by(prof_ID=form.username.data).first()
         if userx:
             if userx.passwort == form.password.data:
                 session['logged_in'] = True

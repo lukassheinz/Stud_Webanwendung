@@ -14,7 +14,7 @@ from flask_admin.contrib.sqla import ModelView
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:waterslide@localhost/Studienverlaufsplan' #hier Passwort der DB und den Namen der DB eingeben
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:Propra2022xyz!@localhost/propra1' #hier Passwort der DB und den Namen der DB eingeben
 db = SQLAlchemy(app)
 
 dbase = Database(app.config['SQLALCHEMY_DATABASE_URI'])
@@ -172,7 +172,7 @@ class Vertiefung(UserMixin, db.Model):
     max_wahlpflicht_vertiefung_LP = db.Column(db.Integer)
     min_wahlpflicht_andere_LP = db.Column(db.Integer)
     max_wahlpflicht_andere_LP = db.Column(db.Integer)
-    wahlpflicht_LP = db.Column(db.Integer)
+  #  wahlpflicht_LP = db.Column(db.Integer)
     modulvertiefung = db.relationship('Modulvertiefung', backref='vertiefung')
     def __str__(self):
         return self.name
@@ -203,9 +203,10 @@ admin.add_view((SecureModelViewBenutzer(Studierende, db.session, endpoint='Benut
 class prof(UserMixin, db.Model):
     ID = db.Column(db.Integer, primary_key=True)
     passwort = db.Column(db.String(80))
+    ProfID = db.Column(db.Integer)
 
 class ProfLoginForm(FlaskForm):
-    username = StringField('ID', validators=[InputRequired(), Length(min=4, max=15)])
+    username = StringField('ProfID', validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField('Passwort', validators=[InputRequired(), Length(max=80)])
 
 class Studienverlaufsplan:
@@ -382,7 +383,7 @@ def signup():
 def proflogin():
     form = ProfLoginForm()
     if form.validate_on_submit():
-        userx = prof.query.filter_by(ID=form.username.data).first()
+        userx = prof.query.filter_by(ProfID=form.username.data).first()
         if userx:
             if userx.passwort == form.password.data:
                 session['logged_in'] = True
